@@ -1,7 +1,4 @@
-import mongoose from 'mongoose';
 import Restaurant from '../models/restaurantModel.js';
-
-import { MONGO_URI } from '../config/config.js';
 
 const restaurantSeedData = [
     {
@@ -23,9 +20,6 @@ const restaurantSeedData = [
 
 const seedDB = async () => {
     try {
-        await mongoose.connect(MONGO_URI);
-        console.log('Connected to MongoDB');
-
         const existingRestaurants = await Restaurant.find();
         if (existingRestaurants.length > 0) {
             return;
@@ -33,9 +27,6 @@ const seedDB = async () => {
             await Restaurant.insertMany(restaurantSeedData);
             console.log('Restaurant seed data inserted');
         }
-
-        mongoose.connection.close();
-        console.log('Connection closed');
     } catch (err) {
         console.error('Error seeding data:', err.message);
         process.exit(1);
