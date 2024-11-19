@@ -1,5 +1,8 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
+
 import { PORT, MONGO_URI } from './config/config.js';
 import logger from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
@@ -20,6 +23,12 @@ app.use(logger);
 // Serve Swagger docs at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Serve Swagger JSON spec
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Mount Restaurant routes at /api/restaurants
 app.use('/api/restaurants', restaurantRoutes);
 
@@ -38,7 +47,8 @@ mongoose
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
+      console.log(`SwaggerUI available at http://localhost:${PORT}/api-docs`);
+      console.log(`Swagger JSON spec available at http://localhost:${PORT}/swagger.json`);
       console.log(`Mongo Express available at http://localhost:8081`);
     });
   })

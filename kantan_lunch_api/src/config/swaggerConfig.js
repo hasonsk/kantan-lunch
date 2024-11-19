@@ -1,4 +1,6 @@
 import swaggerJSDoc from 'swagger-jsdoc';
+import fs from 'fs';
+import path from 'path';
 
 const options = {
   definition: {
@@ -84,7 +86,6 @@ const options = {
       },
     },
   },
-  // Only include route files since models are defined here
   apis: ['./src/routes/*.js'],
 };
 

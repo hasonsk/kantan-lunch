@@ -14,7 +14,7 @@ const restaurantSchema = new mongoose.Schema({
         default: 0,
     },
 }, {
-    timestamps: true, // Tự động thêm các trường createdAt và updatedAt
+    timestamps: true, 
 });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);
