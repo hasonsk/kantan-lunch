@@ -1,12 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import fs from 'fs';
-import path from 'path';
 
 import { PORT, MONGO_URI } from './config/config.js';
 import logger from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
+import seedDB from './data_seeder/seed.js';
 
 // Swagger setup
 import swaggerUi from 'swagger-ui-express';
@@ -45,6 +44,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
+    seedDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`SwaggerUI available at http://localhost:${PORT}/api-docs`);
