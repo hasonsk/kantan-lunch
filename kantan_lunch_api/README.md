@@ -18,12 +18,20 @@
     npm install
     ```
 
+5. Tạo file `.env` trong thư mục `kantan_lunch_api` với nội dung sau:
+    ```properties
+    PORT=3000
+    MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
+    ```
+
 ### Chạy ứng dụng
 
 1. Chạy MongoDB bằng Docker Compose:
     ```bash
     docker-compose up -d
     ```
+    
+    - Nếu muốn sử dụng MongoDB trên máy, chỉ cần thay đổi `MONGO_URI` trong file `.env` thành địa chỉ MongoDB trên máy.
 
 2. Chạy ứng dụng
     - Chạy ứng dụng ở chế độ development
