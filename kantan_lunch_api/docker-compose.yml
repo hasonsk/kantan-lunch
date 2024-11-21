@@ -24,5 +24,19 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_SERVER: mongo
 
+  api:
+    build: .
+    container_name: api
+    restart: always
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Cổng Debug
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    volumes:
+      - .:/usr/src/app 
+
 volumes:
   mongo-data:

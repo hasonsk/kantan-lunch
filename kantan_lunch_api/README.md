@@ -24,6 +24,13 @@
     MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
     ```
 
+    Hoặc
+    ```properties
+    PORT=3000
+    MONGO_URI=mongodb://root:example@mongo:27017/api_db?authSource=admin
+    ```
+    Nếu sử dụng Docker Compose.
+
 ### Chạy ứng dụng
 
 1. Chạy MongoDB bằng Docker Compose:
