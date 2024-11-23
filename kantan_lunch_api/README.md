@@ -22,12 +22,14 @@
     ```properties
     PORT=3000
     MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
+    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
     ```
 
     Hoặc
     ```properties
     PORT=3000
     MONGO_URI=mongodb://root:example@mongo:27017/api_db?authSource=admin
+    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
     ```
     Nếu sử dụng Docker Compose.
 

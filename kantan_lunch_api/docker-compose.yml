@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mongo:
@@ -36,7 +36,7 @@ services:
     depends_on:
       - mongo
     volumes:
-      - .:/usr/src/app 
+      - .:/usr/src/app
 
 volumes:
   mongo-data:
