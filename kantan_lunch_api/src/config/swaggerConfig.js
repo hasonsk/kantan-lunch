@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Restaurant API',
+      title: 'Kantan Lunch',
       version: '1.0.0',
-      description: 'API documentation for the Restaurant application',
+      description: 'API documentation for Kantan Lunch',
     },
     servers: [
       {
