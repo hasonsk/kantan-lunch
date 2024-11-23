@@ -1,0 +1,262 @@
+:root {
+  --primary-color: #0056b3;
+  --secondary-color: #27ae60;
+
+  --text-color: #222;
+  --text-light-color: #2c3e50;
+
+  --rating-color: #f39c12;
+  --accent-color: #1abc9c;
+
+  --border-color: #ccc;
+  --background-color: #eef2f3;
+  --card-background-color: #ffffff;
+  --hover-background-color: #e0e0e0;
+
+  --shadow-color: rgba(0, 0, 0, 0.15);
+
+  --disabled-background: #bfbfbf;
+  --disabled-text: #666;
+
+  --like-color: #e74c3c;
+  --neutral-color: #bdc3c7;
+}
+
+.restaurant-detail {
+  font-family: Arial, sans-serif;
+  margin: 25px;
+}
+
+.restaurant-info {
+  background: var(--background-color);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  margin-bottom: 30px;
+}
+
+.restaurant-name {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--text-light-color);
+  text-align: left;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.info > div {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  padding: 10px;
+  color: var(--text-light-color);
+}
+
+.info .rating {
+  font-size: 20px;
+  color: var(--rating-color);
+  font-weight: bold;
+}
+
+.info .address a,
+.info .phone,
+.info .hours {
+  color: var(--text-light-color);
+  font-size: 16px;
+}
+
+.info .address a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.info .address a:hover {
+  text-decoration: underline;
+}
+
+.dish-list-container h2 {
+  margin: 16px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: left;
+  color: var(--text-color);
+}
+
+.dish-list {
+  display: grid;
+  margin: 0 8.5%;
+  grid-template-columns: repeat(auto-fill, minmax(25%, 30%));
+  gap: 1.5rem;
+  list-style-type: none;
+  padding: 0;
+}
+
+.dish-card {
+  background-color: var(--hover-background-color);
+  width: 90%;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.dish-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.dish-card img:hover {
+  transform: scale(1.075);
+}
+
+.dish-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.dish-info {
+  margin-top: 15px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dish-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.dish-price {
+  font-weight: bold;
+  text-align: right;
+  margin-right: 10%;
+}
+
+.post-card {
+  padding: 12px;
+  margin: 12px 17% 12px 9%;
+  background: var(--card-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.post-user {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+}
+
+.user-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.post-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.post-actions .fas.fa-heart {
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--neutral-color);
+}
+
+.post-actions .fas.fa-heart.liked {
+  color: var(--like-color);
+}
+
+.post-caption {
+  margin: 8px 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.post-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.post-images img {
+  width: calc(33.333% - 10px);
+  max-width: 20%;
+  height: 20%;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.write-post-btn {
+  background-color: var(--accent-color);
+  color: #fff;
+  font-size: 16px;
+  padding: 8px 16px;
+  margin-right: 17%;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.write-post-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  background-color: var(--primary-color);
+  color: #fff;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination button:disabled {
+  background-color: var(--disabled-background);
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 16px;
+  font-weight: bold;
+}
