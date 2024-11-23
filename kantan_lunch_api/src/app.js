@@ -4,8 +4,10 @@ import mongoose from 'mongoose';
 import { PORT, MONGO_URI } from './config/config.js';
 import logger from './middlewares/logger.js';
 import errorHandler from './middlewares/errorHandler.js';
-import restaurantRoutes from './routes/restaurantRoutes.js';
 import seedDB from './data_seeder/seed.js';
+
+import restaurantRoutes from './routes/restaurantRoutes.js';
+import userRoutes from './routes/userRoutes.js'
 
 // Swagger setup
 import swaggerUi from 'swagger-ui-express';
@@ -30,6 +32,7 @@ app.get('/swagger.json', (req, res) => {
 
 // Mount Restaurant routes at /api/restaurants
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/users', userRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
@@ -44,7 +47,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    seedDB();
+    // seedDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`SwaggerUI available at http://localhost:${PORT}/api-docs`);
