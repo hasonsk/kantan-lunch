@@ -1,93 +1,87 @@
+// src/models/restaurantModel.js
+
 import mongoose from 'mongoose';
 
-const restaurantSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    address: {
-        type: String,
-        required: true,
-    },
-    rating: {
-        type: Number,
-        default: 0,
-    },
+const { Schema } = mongoose;
+
+// Define the Restaurant Schema
+const restaurantSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100,
+  },
+  media: [{
+    type: String,
+    required: true,
+    trim: true,
+  }],
+  admin_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 200,
+  },
+  phone_number: {
+    type: String,
+    required: true,
+    trim: true,
+    match: [/^\+?[1-9]\d{1,14}$/, 'Please fill a valid phone number'],
+  },
+  avg_rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  open_time: {
+    type: String,
+    required: true,
+    match: [/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/, 'open_time must be in HH:mm format'],
+  },
+  close_time: {
+    type: String,
+    required: true,
+    match: [/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/, 'close_time must be in HH:mm format'],
+  },
 }, {
-    timestamps: true, 
+  timestamps: true,
 });
 
-const Restaurant = mongoose.model('Restaurant', restaurantSchema);
+// Indexes
+restaurantSchema.index({ admin_id: 1 });
 
-export default Restaurant;
+// Static method to calculate and update avg_rating
+restaurantSchema.statics.updateAvgRating = async function(restaurantId) {
+  const result = await this.model('Post').aggregate([
+    {
+      $match: {
+        restaurant_id: new mongoose.Types.ObjectId(restaurantId),
+        type: { $in: ['Feedback', 'DishFeedback'] },
+        rating: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: '$restaurant_id',
+        averageRating: { $avg: '$rating' },
+      },
+    },
+  ]);
 
-import mongoose from 'mongoose';
-
-// Định nghĩa schema cho món ăn
-const menuItemSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    address: {
-      type: String,
-      required: true,
-    },
-    phone: {
-      type: String,
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-     openingHours: {
-        type: String, // Hoặc bạn có thể làm phức tạp hơn với array hoặc object
-        required: true,
-    },
-    description: {
-      type: String,
-      default: '',
-    },
-  },
-  {
-    _id: false, // Không cần tạo _id riêng cho mỗi món ăn trong mảng
+  if (result.length > 0) {
+    return this.findByIdAndUpdate(restaurantId, { avg_rating: result[0].averageRating }, { new: true });
+  } else {
+    return this.findByIdAndUpdate(restaurantId, { avg_rating: 0 }, { new: true });
   }
-);
+};
 
-// // Định nghĩa schema cho nhà hàng
-// const restaurantSchema = new mongoose.Schema({
-//     name: {
-//         type: String,
-//         required: true,
-//     },
-//     address: {
-//         type: String,
-//         required: true,
-//     },
-//     phone: {
-//         type: String,
-//         required: true,
-//     },
-//     rating: {
-//         type: Number,
-//         default: 0,
-//     },
-//     openingHours: {
-//         type: String, // Hoặc bạn có thể làm phức tạp hơn với array hoặc object
-//         required: true,
-//     },
-//     menu: [menuItemSchema], // Mảng chứa các món ăn
-//     likes: {
-//         type: [mongoose.Schema.Types.ObjectId], // Danh sách userId đã thích nhà hàng
-//         ref: 'User',
-//         default: [],
-//     },
-// }, {
-//     timestamps: true, // Thêm trường createdAt và updatedAt tự động
-// });
-
-// const Restaurant = mongoose.model('Restaurant', restaurantSchema);
-
-// export default Restaurant;
+// Create and Export the Restaurant Model
+const Restaurant = mongoose.model('Restaurant', restaurantSchema);
+export default Restaurant;
