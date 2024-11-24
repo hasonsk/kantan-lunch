@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import restaurantData from "./restaurantData";
-import DishList from "./DishList";
+import DishList from "../../components/dishes/DishList";
 import PostList from "../../components/post/PostList";
 import "./RestaurantDetail.css";
 
@@ -24,7 +24,7 @@ const RestaurantDetails = () => {
 
   return (
     <div className="restaurant-detail">
-      <div className="restaurant-info">
+      <div className="restaurant-detail-info">
         <h1 className="restaurant-name">{name}</h1>
         <div className="info">
           <div className="rating">

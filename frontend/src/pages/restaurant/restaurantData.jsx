@@ -2,7 +2,7 @@ const restaurantData = [
   {
     id: 1,
     name: "サニー・ビストロ",
-    media: ["https://via.placeholder.com/150", "https://via.placeholder.com/150"],
+    media: ["https://images2.thanhnien.vn/528068263637045248/2023/2/28/9afcb59ff8f622a87be7-16760314638681857498218-16775749875331071087079.jpeg", "https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2023/6/11/1203369/IMG_1612.JPG"],
     address: "ハッピータウン、サンシャインアベニュー123",
     phone_number: "+81-123-456-7890",
     open_time: "08:00 AM",
@@ -56,7 +56,7 @@ const restaurantData = [
   {
     id: 2,
     name: "オーシャン・デライト",
-    media: ["https://via.placeholder.com/150", "https://via.placeholder.com/150"],
+    media: ["https://r2.nucuoimekong.com/wp-content/uploads/cac-quan-an-ngon-o-sai-gon.jpg", "https://via.placeholder.com/150"],
     address: "コースタルシティ、シーサイドレーン456",
     phone_number: "+81-987-654-3210",
     open_time: "10:00 AM",
