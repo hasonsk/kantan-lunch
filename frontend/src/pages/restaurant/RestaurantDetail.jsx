@@ -1,11 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import restaurantData from "./restaurantData";
 import DishList from "../../components/dishes/DishList";
 import PostList from "../../components/post/PostList";
 import "./RestaurantDetail.css";
+import { getRestaurantById } from "../../api/restaurant";
 
-const RestaurantDetails = () => {
+const RestaurantDetails = ({restaurantId}) => {
+  // const [restaurant, setRestaurant] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+
+  // const fetchRestaurant = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await getRestaurantById(restaurantId);
+  //     console.log(data);
+  //     setRestaurant(data);
+  //     setLoading(false);
+  //   } catch (err) {
+  //     setError(err.message);
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchRestaurant();
+  // }, []);
+
   const { id } = useParams();
   const restaurant = restaurantData.find((r) => r.id === Number(id));
 

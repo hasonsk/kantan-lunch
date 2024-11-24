@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css'; // Đảm bảo import file CSS tổng quát
-import Home from './pages/home/HomePage';
+import HomePage from './pages/home/HomePage'
 import RestaurantList from './pages/restaurant/RestaurantList';
 import RestaurantDetail from './pages/restaurant/RestaurantDetail';
 import Header from './components/commons/Header';
@@ -15,7 +15,7 @@ function App() {
         <main>
           {/* Các route chính */}
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/restaurant-list" element={<RestaurantList />} />
             <Route path="/restaurants/:id" element={<RestaurantDetail />} />
           </Routes>
