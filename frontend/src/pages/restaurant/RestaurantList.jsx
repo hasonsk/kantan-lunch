@@ -1,11 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import restaurantData from './restaurantData';
 import './RestaurantList.css';
+import { getAllRestaurants } from '../../api/restaurant';
 
 const RestaurantList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchRestaurants = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllRestaurants();
+      console.log(data);
+      setRestaurants(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
 
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating);
