@@ -22,9 +22,9 @@ const PostList = ({ posts }) => {
         {currentPosts.map((post) => <PostCard key={post.id} post={post} />)}
       </ul>
       <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr; Prev</button>
+        <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>
         <span>{currentPage} / {totalPages}</span>
-        <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}>Next &rarr;</button>
+        <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}> &rarr;</button>
       </div>
     </div>
   );

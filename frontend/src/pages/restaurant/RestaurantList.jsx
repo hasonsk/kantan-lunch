@@ -52,6 +52,25 @@ const RestaurantList = () => {
       </div>
 
       <div className="main-content">
+      <div className="filter-section">
+          <p>Text</p>
+          <label><input type="checkbox" /> Option 1</label>
+          <label><input type="checkbox" /> Option 2</label>
+          <label><input type="checkbox" /> Option 3</label>
+          <label><input type="checkbox" /> Option 4</label>
+
+          <p>Text</p>
+          <label><input type="checkbox" /> Option 1</label>
+          <label><input type="checkbox" /> Option 2</label>
+          <label><input type="checkbox" /> Option 3</label>
+          <label><input type="checkbox" /> Option 4</label>
+
+          <p>Text</p>
+          <label><input type="checkbox" /> Option 1</label>
+          <label><input type="checkbox" /> Option 2</label>
+          <label><input type="checkbox" /> Option 3</label>
+          <label><input type="checkbox" /> Option 4</label>
+        </div>
         {filteredRestaurants.length > 0 ? (
           <div className="restaurant-items">
             {filteredRestaurants.map((restaurant) => {
