@@ -20,11 +20,11 @@ const postSchema = new Schema({
     required: true,
     trim: true,
   }],
-  content: [{
+  content: {
     type: String,
     required: true,
     trim: true,
-  }],
+  },
   user_id: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -41,13 +41,6 @@ const postSchema = new Schema({
   },
   
   // Fields for Feedback and DishFeedback
-  restaurant_id: {
-    type: Schema.Types.ObjectId,
-    ref: 'Restaurant',
-    required: function() {
-      return this.type === 'Feedback' || this.type === 'DishFeedback';
-    },
-  },
   rating: {
     type: Number,
     min: 1,
@@ -56,18 +49,20 @@ const postSchema = new Schema({
       return this.type === 'Feedback' || this.type === 'DishFeedback';
     },
   },
+
+  // Fields only for Feedback
+  restaurant_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Restaurant',
+    required: function() {
+      return this.type === 'Feedback';
+    },
+  },
   
   // Fields only for DishFeedback
   dish_id: {
     type: Schema.Types.ObjectId,
     ref: 'Dish',
-    required: function() {
-      return this.type === 'DishFeedback';
-    },
-  },
-  feedback_id: {
-    type: Schema.Types.ObjectId,
-    ref: 'Post', // Reference to parent Feedback
     required: function() {
       return this.type === 'DishFeedback';
     },
