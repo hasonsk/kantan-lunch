@@ -16,10 +16,10 @@ const PostList = ({ posts }) => {
     <div className="post-list-container">
       <div className="post-header">
         <h2>レビュー</h2>
-        <button onClick={() => navigate(`/restaurants/${posts[0]?.id}/write-post`)} className="write-post-btn">貢献したいですか？</button>
+        <button onClick={() => navigate(`/restaurants/${posts[0]?._id}/write-post`)} className="write-post-btn">貢献したいですか？</button>
       </div>
       <ul className="post-list">
-        {currentPosts.map((post) => <PostCard key={post.id} post={post} />)}
+        {currentPosts.map((post) => <PostCard key={post._id} post={post} />)}
       </ul>
       <div className="pagination">
         <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>

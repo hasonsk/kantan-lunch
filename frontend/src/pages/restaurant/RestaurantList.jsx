@@ -92,9 +92,9 @@ const RestaurantList = () => {
           <label><input type="checkbox" /> Option 3</label>
           <label><input type="checkbox" /> Option 4</label>
         </div>
-        {filteredRestaurants.length > 0 ? (
+        {restaurants.total > 0 ? (
           <div className="restaurant-items">
-            {filteredRestaurants.map((restaurant) => {
+            {restaurants.data.map((restaurant) => {
               const image = restaurant.media?.[0] || 'fallback.jpg'; // Sử dụng ảnh đầu tiên hoặc ảnh mặc định
               return (
                 <div key={restaurant.id} className="restaurant-item">
@@ -106,14 +106,14 @@ const RestaurantList = () => {
                     <h3 className="restaurant-name">{restaurant.name}</h3>
                     <div className="restaurant-rating">
                       <div className="stars">
-                        {renderStars(restaurant.average_rating || 0)}
+                        {renderStars(restaurant.avg_rating || 0)}
                       </div>
-                      <span>{restaurant.average_rating?.toFixed(1) || 'N/A'}</span>
+                      <span>{restaurant.avg_rating?.toFixed(1) || 'N/A'}</span>
                     </div>
                     <p className="restaurant-comment">{restaurant.address}</p>
                     <button
                       className="details-button"
-                      onClick={() => handleDetailsClick(restaurant.id)}
+                      onClick={() => handleDetailsClick(restaurant._id)}
                     >
                       詳細を見たいですか
                     </button>
