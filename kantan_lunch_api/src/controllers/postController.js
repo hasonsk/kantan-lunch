@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Post from '../models/postModel.js';
 import Restaurant from '../models/restaurantModel.js';
-import Dish from '../models/dishModel.js'; // Giả sử bạn có model Dish
+import Dish from '../models/dishModel.js';
 import User from '../models/userModel.js';
 
 /**
@@ -303,7 +303,6 @@ const listPosts = async (req, res, next) => {
             .populate('user_id', 'username email')
             .populate('restaurant_id', 'name address')
             .populate('dish_id', 'name description')
-            .populate('feedback_id', 'caption')
             .populate('post_id', 'caption')
             .skip((page - 1) * limit)
             .limit(parseInt(limit))

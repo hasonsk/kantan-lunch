@@ -58,20 +58,17 @@ const router = Router();
  *         reviewed:
  *           type: boolean
  *           description: Whether the post has been reviewed
- *         restaurant_id:
- *           type: string
- *           description: The ID of the related restaurant (for Feedback and DishFeedback)
  *         rating:
  *           type: number
  *           minimum: 1
  *           maximum: 5
  *           description: Rating given (for Feedback and DishFeedback)
+ *         restaurant_id:
+ *           type: string
+ *           description: The ID of the related restaurant (for Feedback and DishFeedback)
  *         dish_id:
  *           type: string
  *           description: The ID of the related dish (for DishFeedback)
- *         feedback_id:
- *           type: string
- *           description: The ID of the parent Feedback post (for DishFeedback)
  *         post_id:
  *           type: string
  *           description: The ID of the parent Post (for Comment)
@@ -84,10 +81,11 @@ const router = Router();
  *           format: date-time
  *           description: The date and time the post was last updated
  *       example:
- *         _id: 60d5ec49f9a1b14a3c8d4567
+ *         _id: 6745a7b592b1f9540756a80f
  *         type: "Feedback"
  *         caption: "Great service and ambiance!"
  *         media: ["https://example.com/image1.jpg"]
+ *         content: "このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。"
  *         user_id: "60d5ec49f9a1b14a3c8d1234"
  *         like_count: 10
  *         reviewed: true
