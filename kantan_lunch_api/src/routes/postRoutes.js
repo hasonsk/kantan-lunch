@@ -10,6 +10,8 @@ import {
     updatePost,
     deletePost,
     listPosts,
+    approvePost,
+    rejectPost,
 } from '../controllers/postController.js';
 
 const router = Router();
@@ -514,6 +516,98 @@ router.get(
     ],
     validate,
     listPosts
+);
+
+/**
+ * @swagger
+ * /posts/{id}/approve:
+ *   put:
+ *     summary: Approve a post (Admin only)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The post ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The post was approved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Post approved successfully.
+ *       400:
+ *         description: Invalid ID format.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden.
+ *       404:
+ *         description: Post not found.
+ */
+router.put(
+    '/:id/approve',
+    authenticate,
+    authorizeRoles('admin'),
+    param('id')
+        .isMongoId()
+        .withMessage('ID must be a valid MongoDB ObjectId'),
+    validate,
+    approvePost
+);
+
+/**
+ * @swagger
+ * /posts/{id}/reject:
+ *   put:
+ *     summary: Reject a post (Admin only)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The post ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The post was rejected successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Post rejected successfully.
+ *       400:
+ *         description: Invalid ID format.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden.
+ *       404:
+ *         description: Post not found.
+ */
+router.put(
+    '/:id/reject',
+    authenticate,
+    authorizeRoles('admin'),
+    param('id')
+        .isMongoId()
+        .withMessage('ID must be a valid MongoDB ObjectId'),
+    validate,
+    rejectPost
 );
 
 export default router;

@@ -323,10 +323,54 @@ const listPosts = async (req, res, next) => {
     }
 };
 
+/**
+ * Approve a post by ID.
+ */
+const approvePost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = true;
+        await post.save();
+
+        res.status(200).json({ message: 'Post approved successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Reject a post by ID.
+ */
+const rejectPost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = false;
+        await post.save();
+
+        res.status(200).json({ message: 'Post rejected successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     createPost,
     getPost,
     updatePost,
     deletePost,
     listPosts,
+    approvePost,
+    rejectPost,
 };
