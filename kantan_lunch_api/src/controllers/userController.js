@@ -1,6 +1,3 @@
-// src/controllers/userController.js
-
-import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 

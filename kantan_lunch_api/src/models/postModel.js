@@ -71,7 +71,7 @@ const postSchema = new Schema({
   // Fields only for Comment
   post_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Post', // Reference to parent Post
+    ref: 'Post',
     required: function() {
       return this.type === 'Comment';
     },

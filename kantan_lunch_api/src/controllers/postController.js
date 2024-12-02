@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Post from '../models/postModel.js';
 import Restaurant from '../models/restaurantModel.js';
-import Dish from '../models/dishModel.js'; // Giả sử bạn có model Dish
+import Dish from '../models/dishModel.js';
 import User from '../models/userModel.js';
 
 /**
@@ -303,7 +303,6 @@ const listPosts = async (req, res, next) => {
             .populate('user_id', 'username email')
             .populate('restaurant_id', 'name address')
             .populate('dish_id', 'name description')
-            .populate('feedback_id', 'caption')
             .populate('post_id', 'caption')
             .skip((page - 1) * limit)
             .limit(parseInt(limit))
@@ -324,10 +323,54 @@ const listPosts = async (req, res, next) => {
     }
 };
 
+/**
+ * Approve a post by ID.
+ */
+const approvePost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = true;
+        await post.save();
+
+        res.status(200).json({ message: 'Post approved successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Reject a post by ID.
+ */
+const rejectPost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = false;
+        await post.save();
+
+        res.status(200).json({ message: 'Post rejected successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     createPost,
     getPost,
     updatePost,
     deletePost,
     listPosts,
+    approvePost,
+    rejectPost,
 };

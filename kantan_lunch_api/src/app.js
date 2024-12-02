@@ -9,6 +9,7 @@ import seedDB from './data_seeder/seed.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import userRoutes from './routes/userRoutes.js'
 import postRoutes from './routes/postRoutes.js'
+import likeRoutes from './routes/likeRoutes.js';
 
 // Swagger setup
 import swaggerUi from 'swagger-ui-express';
@@ -35,6 +36,7 @@ app.get('/swagger.json', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/likes', likeRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
