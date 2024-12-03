@@ -1,20 +1,109 @@
 import Restaurant from '../models/restaurantModel.js';
+import Dish from '../models/dishModel.js';
+
+import NodeGeocoder from 'node-geocoder';
+
+// Cấu hình Geocoder
+const geocoderOptions = {
+    provider: 'openstreetmap'
+};
+const geocoder = NodeGeocoder(geocoderOptions);
 
 /**
- * Retrieves and sends all restaurant items with pagination and optional filtering.
+ * Retrieves and sends all restaurant items with pagination and optional filtering, including distance, average price range, and average rating.
  */
-const fetchAllRestaurants = async (req, res, next) => {
+const listRestaurants = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = req.query;
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            sortBy = 'createdAt',
+            sortOrder = 'asc',
+            latitude,
+            longitude,
+            distance = 5,
+            minAvgPrice,
+            maxAvgPrice,
+            avgRating, 
+        } = req.query;
 
-        const query = {};
+        const matchStage = {};
 
         // Implement search functionality based on restaurant name or address
         if (search) {
-            query.$or = [
+            matchStage.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { address: { $regex: search, $options: 'i' } },
             ];
+        }
+
+        // Implement distance filtering
+        if (latitude && longitude) {
+            const lat = parseFloat(latitude);
+            const lon = parseFloat(longitude);
+            const dist = parseFloat(distance);
+
+            // Convert distance from kilometers to radians (Earth radius = 6378.1 km)
+            const distanceInRadians = dist / 6378.1;
+
+            matchStage.location = {
+                $geoWithin: {
+                    $centerSphere: [[lon, lat], distanceInRadians],
+                },
+            };
+        }
+
+        // Aggregation pipeline
+        const pipeline = [
+            { $match: matchStage },
+            {
+                $lookup: {
+                    from: 'dishes',
+                    localField: '_id',
+                    foreignField: 'restaurant_id',
+                    as: 'dishes',
+                },
+            },
+            {
+                $addFields: {
+                    averagePrice: { $avg: '$dishes.price' }
+                },
+            },
+            {
+                $unset: 'dishes',
+            },
+            {
+                $addFields: {
+                    location: "$location.coordinates"
+                }
+            },
+        ];
+
+        // Apply average price filtering
+        if (minAvgPrice || maxAvgPrice) {
+            const priceFilter = {};
+            if (minAvgPrice) {
+                priceFilter.$gte = parseFloat(minAvgPrice);
+            }
+            if (maxAvgPrice) {
+                priceFilter.$lte = parseFloat(maxAvgPrice);
+            }
+            pipeline.push({
+                $match: {
+                    averagePrice: priceFilter,
+                },
+            });
+        }
+
+        // Apply average rating filtering
+        if (avgRating) {
+            const roundedAvgRating = Math.round(parseFloat(avgRating));
+            pipeline.push({
+                $match: {
+                    avg_rating: roundedAvgRating,
+                },
+            });
         }
 
         // Implement sorting
@@ -24,14 +113,19 @@ const fetchAllRestaurants = async (req, res, next) => {
         } else {
             sortOptions = { createdAt: -1 }; // Default sort by creation date descending
         }
+        pipeline.push({ $sort: sortOptions });
 
-        const restaurants = await Restaurant.find(query)
-            .populate('admin_id', 'username email') // Populate admin details
-            .sort(sortOptions)
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+        // Count total documents before pagination
+        const countPipeline = [...pipeline, { $count: 'total' }];
+        const countResult = await Restaurant.aggregate(countPipeline);
+        const total = countResult[0] ? countResult[0].total : 0;
 
-        const total = await Restaurant.countDocuments(query);
+        // Apply pagination
+        pipeline.push({ $skip: (page - 1) * limit });
+        pipeline.push({ $limit: parseInt(limit) });
+
+        // Execute aggregation
+        const restaurants = await Restaurant.aggregate(pipeline);
 
         res.status(200).json({
             total,
@@ -65,19 +159,45 @@ const fetchRestaurantById = async (req, res, next) => {
 };
 
 /**
+ * Geocodes an address to obtain its latitude and longitude.
+ * If the address is invalid, returns random coordinates within a specified range.
+ */
+const geocodeAddress = async (address) => {
+    const geoData = await geocoder.geocode(address);
+    let latitude;
+    let longitude;
+    if (!geoData.length) {
+        console.log(`Invalid address provided: ${address}`);
+        latitude = 21.00501 + (Math.random() - 0.5) * 0.01;
+        longitude = 105.84559 + (Math.random() - 0.5) * 0.01;
+    } else {
+        latitude = geoData[0].latitude;
+        longitude = geoData[0].longitude;
+    }
+    return { latitude, longitude };
+}
+
+/**
  * Creates a new restaurant item and sends it in the response.
  * Only accessible by admin users.
  */
 const createNewRestaurant = async (req, res, next) => {
     try {
-        const { name, media, address, phone_number, open_time, close_time } = req.body;
+        const {
+            name,
+            media,
+            address,
+            phone_number,
+            open_time,
+            close_time
+        } = req.body;
 
         // Validate required fields
         if (!name || !address || !phone_number || open_time === undefined || close_time === undefined) {
             return res.status(400).json({ message: 'Missing required fields.' });
         }
 
-        // Validate open_time and close_time (HHMM format)
+        // Validate open_time and close_time (HH:mm format)
         const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
 
         if (!timeRegex.test(open_time) || !timeRegex.test(close_time)) {
@@ -88,6 +208,8 @@ const createNewRestaurant = async (req, res, next) => {
         if (media && (!Array.isArray(media) || media.length === 0)) {
             return res.status(400).json({ message: 'Media must be a non-empty array of URLs.' });
         }
+
+        const { latitude, longitude } = await geocodeAddress(address);
 
         // Assign admin_id from authenticated user
         const admin_id = req.user._id;
@@ -100,6 +222,10 @@ const createNewRestaurant = async (req, res, next) => {
             phone_number,
             open_time,
             close_time,
+            location: {
+                type: 'Point',
+                coordinates: [longitude, latitude]
+            }
         });
 
         const savedRestaurant = await newRestaurant.save();
@@ -114,31 +240,20 @@ const createNewRestaurant = async (req, res, next) => {
     }
 };
 
-
 /**
  * Updates an existing restaurant item and sends the updated item in the response.
- * Only accessible by the admin of the restaurant.
+ * Only accessible by the admin users
  */
 const modifyRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
         const updates = req.body;
 
-        // // Validate ObjectId
-        // if (!mongoose.Types.ObjectId.isValid(id)) {
-        //     return res.status(400).json({ message: 'Invalid restaurant ID format.' });
-        // }
-
         // Fetch the restaurant to verify ownership
         const restaurant = await Restaurant.findById(id);
         if (!restaurant) {
             return res.status(404).json({ message: 'Restaurant not found.' });
         }
-
-        // // Check if the authenticated user is the admin of the restaurant
-        // if (restaurant.admin_id.toString() !== req.user._id.toString()) {
-        //     return res.status(403).json({ message: 'Forbidden: You are not the admin of this restaurant.' });
-        // }
 
         // If updating open_time or close_time, validate the format
         if (updates.open_time !== undefined || updates.close_time !== undefined) {
@@ -154,6 +269,15 @@ const modifyRestaurant = async (req, res, next) => {
         // If updating media, ensure it's a non-empty array
         if (updates.media && (!Array.isArray(updates.media) || updates.media.length === 0)) {
             return res.status(400).json({ message: 'Media must be a non-empty array of URLs.' });
+        }
+
+        // If updating address, geocode it to get coordinates
+        if (updates.address && updates.address !== restaurant.address) {
+            const { latitude, longitude } = await geocodeAddress(updates.address);
+            updates.location = {
+                type: 'Point',
+                coordinates: [longitude, latitude]
+            };
         }
 
         // Update the restaurant
@@ -180,20 +304,10 @@ const removeRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // // Validate ObjectId
-        // if (!mongoose.Types.ObjectId.isValid(id)) {
-        //     return res.status(400).json({ message: 'Invalid restaurant ID format.' });
-        // }
-
         const restaurant = await Restaurant.findById(id);
         if (!restaurant) {
             return res.status(404).json({ message: 'Restaurant not found.' });
         }
-
-        // // Check if the authenticated user is the admin of the restaurant
-        // if (restaurant.admin_id.toString() !== req.user._id.toString()) {
-        //     return res.status(403).json({ message: 'Forbidden: You are not the admin of this restaurant.' });
-        // }
 
         // Delete the restaurant
         await Restaurant.findByIdAndDelete(id);
@@ -204,7 +318,7 @@ const removeRestaurant = async (req, res, next) => {
 }
 
 export {
-    fetchAllRestaurants,
+    listRestaurants,
     fetchRestaurantById,
     createNewRestaurant,
     modifyRestaurant,
