@@ -1,13 +1,45 @@
 import Restaurant from '../models/restaurantModel.js';
-import Dish from '../models/dishModel.js';
 
 import NodeGeocoder from 'node-geocoder';
+import { getDistance } from 'geolib';
+import mongoose from 'mongoose';
 
 // Cấu hình Geocoder
 const geocoderOptions = {
     provider: 'openstreetmap'
 };
 const geocoder = NodeGeocoder(geocoderOptions);
+
+const HUST_LATITUDE = 21.00501;
+const HUST_LONGITUDE = 105.84559;
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const startLat = lat1 !== undefined ? parseFloat(lat1) : HUST_LATITUDE;
+    const startLon = lon1 !== undefined ? parseFloat(lon1) : HUST_LONGITUDE;
+    return getDistance(
+        { latitude: startLat, longitude: startLon },
+        { latitude: parseFloat(lat2), longitude: parseFloat(lon2) }
+    ) / 1000;
+};
+
+/**
+ * Geocodes an address to obtain its latitude and longitude.
+ * If the address is invalid, returns random coordinates within a specified range.
+ */
+const geocodeAddress = async (address) => {
+    const geoData = await geocoder.geocode(address);
+    let latitude;
+    let longitude;
+    if (!geoData.length) {
+        console.log(`Invalid address provided: ${address}`);
+        latitude = HUST_LATITUDE + (Math.random() - 0.5) * 0.01;
+        longitude = HUST_LONGITUDE + (Math.random() - 0.5) * 0.01;
+    } else {
+        latitude = geoData[0].latitude;
+        longitude = geoData[0].longitude;
+    }
+    return { latitude, longitude };
+}
 
 /**
  * Retrieves and sends all restaurant items with pagination and optional filtering, including distance, average price range, and average rating.
@@ -25,7 +57,7 @@ const listRestaurants = async (req, res, next) => {
             distance = 5,
             minAvgPrice,
             maxAvgPrice,
-            avgRating, 
+            avgRating,
         } = req.query;
 
         const matchStage = {};
@@ -127,6 +159,13 @@ const listRestaurants = async (req, res, next) => {
         // Execute aggregation
         const restaurants = await Restaurant.aggregate(pipeline);
 
+        // Calculate distance from the user's location
+        if (latitude && longitude) {
+            restaurants.forEach((restaurant) => {
+                restaurant.distance = calculateDistance(latitude, longitude, restaurant.location[1], restaurant.location[0]);
+            });
+        }
+
         res.status(200).json({
             total,
             page: parseInt(page),
@@ -140,42 +179,60 @@ const listRestaurants = async (req, res, next) => {
 };
 
 /**
- * Retrieves and sends a single restaurant by ID.
+ * Retrieves and sends a single restaurant by ID, including averagePrice and distance if location is provided.
  */
 const fetchRestaurantById = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { latitude, longitude } = req.query;
 
-        const restaurant = await Restaurant.findById(id).populate('admin_id', 'username email');
+        const pipeline = [
+            { $match: { _id: new mongoose.Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'dishes',
+                    localField: '_id',
+                    foreignField: 'restaurant_id',
+                    as: 'dishes',
+                },
+            },
+            {
+                $addFields: {
+                    averagePrice: { $avg: '$dishes.price' },
+                },
+            },
+            {
+                $addFields: {
+                    location: "$location.coordinates"
+                },
+            },
+            {
+                $unset: ['dishes']
+            },
+        ];
 
-        if (!restaurant) {
+        // Execute aggregation
+        const restaurantData = await Restaurant.aggregate(pipeline);
+
+        if (!restaurantData || restaurantData.length === 0) {
             return res.status(404).json({ message: 'Restaurant not found.' });
         }
+
+        const restaurant = restaurantData[0];
+
+        // Calculate distance 
+        restaurant.distance = calculateDistance(
+            latitude === undefined ? undefined : parseFloat(latitude),
+            longitude === undefined ? undefined : parseFloat(longitude),
+            restaurant.location[1],
+            restaurant.location[0]
+        );
 
         res.status(200).json(restaurant);
     } catch (error) {
         next(error);
     }
 };
-
-/**
- * Geocodes an address to obtain its latitude and longitude.
- * If the address is invalid, returns random coordinates within a specified range.
- */
-const geocodeAddress = async (address) => {
-    const geoData = await geocoder.geocode(address);
-    let latitude;
-    let longitude;
-    if (!geoData.length) {
-        console.log(`Invalid address provided: ${address}`);
-        latitude = 21.00501 + (Math.random() - 0.5) * 0.01;
-        longitude = 105.84559 + (Math.random() - 0.5) * 0.01;
-    } else {
-        latitude = geoData[0].latitude;
-        longitude = geoData[0].longitude;
-    }
-    return { latitude, longitude };
-}
 
 /**
  * Creates a new restaurant item and sends it in the response.

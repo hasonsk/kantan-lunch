@@ -47,8 +47,8 @@ const router = Router();
  *             type: string
  *           description: Array of media URLs
  *         admin_id:
- *           $ref: '#/components/schemas/User'
- *           description: Admin user who manages the restaurant
+ *           type: string
+ *           description: Admin user ID who created the restaurant
  *         address:
  *           type: string
  *           description: Address of the restaurant
@@ -56,7 +56,7 @@ const router = Router();
  *           type: array
  *           items:
  *             type: number
- *           description: Geographic location of the restaurant [	latitude, longitude ]
+ *           description: Geographic location of the restaurant [latitude, longitude]
  *         phone_number:
  *           type: string
  *           description: Contact phone number
@@ -71,6 +71,15 @@ const router = Router();
  *         close_time:
  *           type: string
  *           description: Closing time in HH:MM format (e.g., 21:00)
+ *         __v:
+ *           type: integer
+ *           description: Version key
+ *         averagePrice:
+ *           type: number
+ *           description: Average price of meals
+ *         distance:
+ *           type: number
+ *           description: Distance from a reference point
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -80,18 +89,14 @@ const router = Router();
  *           format: date-time
  *           description: The date and time the restaurant was last updated
  *       example:
- *         _id: "674ed04c51ac275466e599b2"
+ *         _id: "674eed54edd49b6af0d2a0de"
  *         name: "hàng quà Restaurant - Asian Fusion Food & Coffee"
  *         media: [
  *           "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/6d/7a/40/hang-qua-on-13-hang-bong.jpg?w=900&h=500&s=1",
  *           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHxA3Pp1uvkAJQY8P6fsR5zzrFzyYJpVWyvQ&s"
  *         ]
- *         admin_id: {
- *           "_id": "674ed04751ac275466e599ac",
- *           "username": "adminuser",
- *           "email": "admin@example.com"
- *         }
- *         address: "13 P. Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam"
+ *         admin_id: "674eed50edd49b6af0d2a0d8"
+ *         address: "13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam"
  *         location: [
  *            105.84701888248215, 
  *            21.030209039234084
@@ -100,8 +105,11 @@ const router = Router();
  *         avg_rating: 0
  *         open_time: "09:00"
  *         close_time: "22:00"
- *         createdAt: "2024-12-03T09:33:00.183Z"
- *         updatedAt: "2024-12-03T09:33:00.183Z"
+ *         __v: 0
+ *         averagePrice: 1500
+ *         distance: 2.809
+ *         createdAt: "2024-12-03T11:36:52.823Z"
+ *         updatedAt: "2024-12-03T11:36:52.823Z"
  *
  *     RestaurantInput:
  *       type: object
@@ -137,8 +145,6 @@ const router = Router();
  *         open_time: "09:00"
  *         close_time: "21:00"
  */
-
-// Updated restaurantRoutes.js
 
 /**
  * @swagger
@@ -314,6 +320,18 @@ router.get(
  *         description: The restaurant ID
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Latitude for distance calculation
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Longitude for distance calculation
  *     responses:
  *       200:
  *         description: The restaurant description by id.
@@ -328,7 +346,16 @@ router.get(
  */
 router.get(
   '/:id',
-  param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
+  param('id')
+    .isMongoId()
+    .withMessage('ID must be a valid MongoDB ObjectId'),
+  query('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be a number between -90 and 90'),
+  query('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 }),
   validate,
   fetchRestaurantById
 );
