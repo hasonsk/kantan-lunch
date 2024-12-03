@@ -118,14 +118,6 @@ const updateUserProfile = async (req, res, next) => {
             }
         }
 
-        // If password is being updated, hash it
-        if (updates.password) {
-            const user = await User.findById(req.user._id);
-            user.password = updates.password;
-            await user.save();
-            delete updates.password; // Remove password from updates to prevent overwriting
-        }
-
         // Update user profile
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
@@ -138,6 +130,31 @@ const updateUserProfile = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Changes the password of the currently authenticated user.
+ */
+const changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate current password
+        const user = await User.findById(req.user._id);
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid current password.' });
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully.' });
+    }
+    catch (error) {
+        next(error);
+    }
+}
 
 /**
  * Admin: Registers a new admin user.
@@ -295,6 +312,7 @@ export {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    changePassword,
     registerAdmin,
     getAllUsers,
     getUserById,

@@ -11,6 +11,7 @@ import {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    changePassword,
     registerAdmin,
     getAllUsers,
     getUserById,
@@ -458,6 +459,68 @@ router.put(
     ],
     validate,
     updateUserProfile
+);
+
+/**
+ * @swagger
+ * /users/change-password:
+ *   put:
+ *     summary: Update the current user's password
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 description: The user's new password
+ *             example:
+ *               currentPassword: "oldpassword123"
+ *               newPassword: "newpassword456"
+ *     responses:
+ *       200:
+ *         description: Password updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
+router.put(
+    '/change-password',
+    authenticate,
+    [
+        body('currentPassword')
+            .notEmpty()
+            .withMessage('Current password is required'),
+        body('newPassword')
+            .notEmpty()
+            .withMessage('New password is required')
+            .isLength({ min: 6 })
+            .withMessage('New password must be at least 6 characters long'),
+    ],
+    validate,
+    changePassword
 );
 
 /**
