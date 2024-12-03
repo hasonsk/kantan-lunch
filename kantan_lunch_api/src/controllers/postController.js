@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import Post from '../models/postModel.js';
 import Restaurant from '../models/restaurantModel.js';
 import Dish from '../models/dishModel.js';
-import User from '../models/userModel.js';
 
 /**
  * Tạo một Post mới
@@ -19,7 +18,7 @@ const createPost = async (req, res, next) => {
                 if (!restaurant_id) {
                     return res.status(400).json({ message: 'restaurant_id is required for Feedback and DishFeedback.' });
                 }
-                if (rating === undefined) { 
+                if (rating === undefined) {
                     return res.status(400).json({ message: 'rating is required for Feedback and DishFeedback.' });
                 }
                 // Kiểm tra xem Restaurant tồn tại
@@ -51,15 +50,10 @@ const createPost = async (req, res, next) => {
             if (!dish) {
                 return res.status(404).json({ message: 'Dish not found.' });
             }
-
-            if (!feedback_id) {
-                return res.status(400).json({ message: 'feedback_id is required for DishFeedback.' });
-            }
-            const feedbackPost = await Post.findById(feedback_id);
-            if (!feedbackPost || feedbackPost.type !== 'Feedback') {
-                return res.status(404).json({ message: 'Parent Feedback Post not found or invalid.' });
-            }
         }
+
+        // Nếu là Comment, đặt reviewed = true ngay lập tức
+        const reviewed = type === 'Comment';
 
         // Tạo Post mới
         const newPost = new Post({
@@ -72,6 +66,7 @@ const createPost = async (req, res, next) => {
             dish_id: type === 'DishFeedback' ? dish_id : undefined,
             feedback_id: type === 'DishFeedback' ? feedback_id : undefined,
             post_id: type === 'Comment' ? post_id : undefined,
+            reviewed,
         });
 
         const savedPost = await newPost.save();
@@ -267,7 +262,7 @@ const deletePost = async (req, res, next) => {
  */
 const listPosts = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id, reviewed } = req.query;
+        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id, reviewed = 'true' } = req.query;
 
         const query = {};
 
@@ -298,9 +293,10 @@ const listPosts = async (req, res, next) => {
             }
             query.post_id = post_id;
         }
-        if (reviewed) {
-            query.reviewed = reviewed === 'true';
+        if (reviewed === 'false' && (!req.user || req.user.role !== 'admin')) {
+            return res.status(403).json({ message: 'Forbidden: Only admin can view unreviewed posts.' });
         }
+        query.reviewed = reviewed === 'true';
 
         const posts = await Post.find(query)
             .populate('user_id', 'username email')
