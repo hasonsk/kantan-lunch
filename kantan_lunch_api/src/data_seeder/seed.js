@@ -1,9 +1,17 @@
 import bcrypt from 'bcryptjs';
+import NodeGeocoder from 'node-geocoder';
+
 import User from '../models/userModel.js';
 import Restaurant from '../models/restaurantModel.js';
 import Dish from '../models/dishModel.js';
 import Post from '../models/postModel.js';
 import Like from '../models/likeModel.js';
+
+// Cấu hình Geocoder
+const geocoderOptions = {
+    provider: 'openstreetmap'
+};
+const geocoder = NodeGeocoder(geocoderOptions);
 
 const seedUsers = async () => {
     const users = [
@@ -60,11 +68,11 @@ const seedUsers = async () => {
 const seedRestaurants = async (userIds) => {
     const restaurants = [
         {
-            name: 'グルメキッチン',
-            address: 'フードヴィル、クッカリー通り123',
+            name: 'hàng quà Restaurant - Asian Fusion Food & Coffee',
+            address: '13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam',
             media: [
-                'https://images2.thanhnien.vn/528068263637045248/2023/2/28/9afcb59ff8f622a87be7-16760314638681857498218-16775749875331071087079.jpeg',
-                'https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2023/6/11/1203369/IMG_1612.JPG'
+                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/6d/7a/40/hang-qua-on-13-hang-bong.jpg?w=900&h=500&s=1',
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHxA3Pp1uvkAJQY8P6fsR5zzrFzyYJpVWyvQ&s'
             ],
             admin_id: userIds.admin,
             phone_number: '+84123456789',
@@ -72,11 +80,11 @@ const seedRestaurants = async (userIds) => {
             close_time: '22:00',
         },
         {
-            name: 'グルメキッチン',
-            address: 'トウキョウ、寿司通り456',
+            name: 'The Gourmet Corner Restaurant',
+            address: '22, Ta Hien, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://r2.nucuoimekong.com/wp-content/uploads/cac-quan-an-ngon-o-sai-gon.jpg',
-                'https://via.placeholder.com/150'
+                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/28/e8/95/25/restaurant.jpg?w=1200&h=-1&s=1',
+                'https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/2000937417198/The%2520Gourmet%2520Corner%2520Restaurant%2520Hanoi%2520-4e5661d4-23c1-44c3-a129-ca7e40d8a28f.jpeg?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit'
             ],
             admin_id: userIds.admin,
             phone_number: '+84987654321',
@@ -84,11 +92,11 @@ const seedRestaurants = async (userIds) => {
             close_time: '22:00',
         },
         {
-            name: 'スシハウス',
-            address: '大阪、ラーメン横丁789',
+            name: 'Gia Ngư Restaurant',
+            address: '27, Gia Ngu, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2023/6/11/1203369/IMG_1612.JPG',
-                'https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2023/6/11/1203369/IMG_1612.JPG'
+                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/12/cc/e4/caption.jpg?w=1200&h=-1&s=1',
+                'https://media-cdn.tripadvisor.com/media/photo-s/19/f4/86/8f/photo5jpg.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84911223344',
@@ -97,6 +105,26 @@ const seedRestaurants = async (userIds) => {
         },
         // Add more restaurants...
     ];
+
+    // Calculate location coordinates for each restaurant
+    for (const restaurant of restaurants) {
+        const geoData = await geocoder.geocode(restaurant.address);
+        let latitude;
+        let longitude;
+        if (!geoData.length) {
+            console.log(`Invalid address provided: ${restaurant.address}`);
+            latitude = 21.028511;
+            longitude = 105.853662;
+        } else {
+            latitude = geoData[0].latitude;
+            longitude = geoData[0].longitude;
+        }
+        restaurant.location = {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+        };
+    }
+
     const createdRestaurants = await Restaurant.insertMany(restaurants);
     return {
         restaurant1: createdRestaurants[0]._id,
@@ -254,7 +282,7 @@ const seedDB = async () => {
         console.log(`Created ${Object.keys(createdDisheIds).length} dishes.`);
 
         const createdPostIds = await seedPosts(createdUserIds, createdRestaurantIds, createdDisheIds);
-        
+
         const feedbackCount = Object.keys(createdPostIds.feedbackIds).length;
         console.log(`Created ${feedbackCount} feedback posts.`);
 
@@ -273,7 +301,7 @@ const seedDB = async () => {
 
         await seedLikes(createdUserIds, postIds);
         console.log('Created likes.');
-        
+
         console.log('Seed Data Complete!');
     } catch (err) {
         console.error('Error seeding data:', err.message);
