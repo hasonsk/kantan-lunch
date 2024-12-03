@@ -459,6 +459,11 @@ router.delete(
  *         schema:
  *           type: string
  *         description: Filter by parent post ID (for comments)
+ *       - in: query
+ *         name: reviewed
+ *         schema:
+ *           type: boolean
+ *         description: Filter by reviewed status
  *     responses:
  *       200:
  *         description: A list of posts.
@@ -513,6 +518,10 @@ router.get(
             .optional()
             .isMongoId()
             .withMessage('post_id must be a valid MongoDB ObjectId'),
+        query('reviewed')
+            .optional()
+            .isBoolean()
+            .withMessage('reviewed must be a boolean'),
     ],
     validate,
     listPosts

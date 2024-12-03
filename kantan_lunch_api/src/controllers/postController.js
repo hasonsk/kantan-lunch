@@ -267,7 +267,7 @@ const deletePost = async (req, res, next) => {
  */
 const listPosts = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id } = req.query;
+        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id, reviewed } = req.query;
 
         const query = {};
 
@@ -297,6 +297,9 @@ const listPosts = async (req, res, next) => {
                 return res.status(400).json({ message: 'Invalid post_id format.' });
             }
             query.post_id = post_id;
+        }
+        if (reviewed) {
+            query.reviewed = reviewed === 'true';
         }
 
         const posts = await Post.find(query)
