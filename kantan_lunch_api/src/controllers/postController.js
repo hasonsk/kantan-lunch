@@ -13,23 +13,38 @@ const createPost = async (req, res, next) => {
             return res.status(403).json({ message: 'You are banned from creating posts.' });
         }
 
-        const { type, caption, media, restaurant_id, rating, dish_id, feedback_id, post_id } = req.body;
+        const { 
+            type, 
+            caption, 
+            content,
+            media, 
+            restaurant_id, 
+            rating, 
+            dish_id, 
+            post_id 
+        } = req.body;
         const user_id = req.user._id;
 
         // Kiểm tra các trường bắt buộc dựa trên loại Post
         switch (type) {
             case 'Feedback':
-            case 'DishFeedback':
                 if (!restaurant_id) {
-                    return res.status(400).json({ message: 'restaurant_id is required for Feedback and DishFeedback.' });
-                }
-                if (rating === undefined) {
-                    return res.status(400).json({ message: 'rating is required for Feedback and DishFeedback.' });
+                    return res.status(400).json({ message: 'restaurant_id is required for Feedback.' });
                 }
                 // Kiểm tra xem Restaurant tồn tại
                 const restaurant = await Restaurant.findById(restaurant_id);
                 if (!restaurant) {
                     return res.status(404).json({ message: 'Restaurant not found.' });
+                }
+                break;
+            case 'DishFeedback':
+                if (!dish_id) {
+                    return res.status(400).json({ message: 'dish_id is required for DishFeedback.' });
+                }
+                // Kiểm tra xem Dish tồn tại
+                const dish = await Dish.findById(dish_id);
+                if (!dish) {
+                    return res.status(404).json({ message: 'Dish not found.' });
                 }
                 break;
             case 'Comment':
@@ -46,17 +61,6 @@ const createPost = async (req, res, next) => {
                 return res.status(400).json({ message: 'Invalid post type.' });
         }
 
-        // Nếu là DishFeedback, kiểm tra Dish và Feedback tồn tại
-        if (type === 'DishFeedback') {
-            if (!dish_id) {
-                return res.status(400).json({ message: 'dish_id is required for DishFeedback.' });
-            }
-            const dish = await Dish.findById(dish_id);
-            if (!dish) {
-                return res.status(404).json({ message: 'Dish not found.' });
-            }
-        }
-
         // Nếu là Comment, đặt reviewed = true ngay lập tức
         const reviewed = type === 'Comment';
 
@@ -64,12 +68,12 @@ const createPost = async (req, res, next) => {
         const newPost = new Post({
             type,
             caption,
+            content,
             media,
             user_id,
-            restaurant_id: type === 'Feedback' || type === 'DishFeedback' ? restaurant_id : undefined,
-            rating: type === 'Feedback' || type === 'DishFeedback' ? rating : undefined,
+            restaurant_id: type === 'Feedback' ? restaurant_id : undefined,
             dish_id: type === 'DishFeedback' ? dish_id : undefined,
-            feedback_id: type === 'DishFeedback' ? feedback_id : undefined,
+            rating: type === 'Feedback' || type === 'DishFeedback' ? rating : undefined,
             post_id: type === 'Comment' ? post_id : undefined,
             reviewed,
         });
