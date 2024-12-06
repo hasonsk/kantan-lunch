@@ -8,6 +8,11 @@ import Dish from '../models/dishModel.js';
  */
 const createPost = async (req, res, next) => {
     try {
+        // Kiểm tra nếu user bị ban
+        if (req.user.banned) {
+            return res.status(403).json({ message: 'You are banned from creating posts.' });
+        }
+
         const { type, caption, media, restaurant_id, rating, dish_id, feedback_id, post_id } = req.body;
         const user_id = req.user._id;
 
