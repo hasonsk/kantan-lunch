@@ -23,6 +23,13 @@
     PORT=3000
     MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
     JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
+
+    MAIL_SERVICE=gmail # Hoặc service khác
+    MAIL_USER= <your-gmail> 
+    MAIL_PASS= <your-password> # App password lây từ tài khoản Google
+    MAIL_HOST=smtp.gmail.com
+    MAIL_PORT=465
+    MAIL_SECURE=true
     ```
 
     Hoặc
