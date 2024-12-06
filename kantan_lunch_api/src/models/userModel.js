@@ -71,6 +71,12 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Restaurant',
   }],
+  code: {
+    type: String
+  },
+  codeExpires: {
+    type: Date
+  },
 }, {
   timestamps: true,
 });
@@ -80,7 +86,7 @@ userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
 
 // Pre-save hook to hash passwords
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -94,7 +100,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare passwords
-userSchema.methods.matchPassword = async function(enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
