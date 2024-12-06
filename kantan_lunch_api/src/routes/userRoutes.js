@@ -19,6 +19,8 @@ import {
     addLovedRestaurant,
     removeLovedRestaurant,
     listLovedRestaurants,
+    sendCode,
+    verifyCode,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -1015,6 +1017,105 @@ router.get(
     ],
     validate,
     listLovedRestaurants
+);
+
+/**
+ * @swagger
+ * /users/send-code:
+ *   post:
+ *     summary: Send a verification code to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *             required:
+ *               - email
+ *             example:
+ *               email: user@example.com
+ *     responses:
+ *       200:
+ *         description: Code has been sent to the user's email successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code sent successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/send-code',
+    [body('email').isEmail().withMessage('Invalid email')],
+    validate, // Middleware validate lỗi từ express-validator
+    sendCode
+);
+
+/**
+ * @swagger
+ * /users/verify-code:
+ *   post:
+ *     summary: Verify the code sent to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *             required:
+ *               - email
+ *               - code
+ *             example:
+ *               email: user@example.com
+ *               code: "123456"
+ *     responses:
+ *       200:
+ *         description: Code has been verified successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code verified successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/verify-code',
+    [
+        body('email').isEmail().withMessage('Invalid email'),
+        body('code').isLength({ min: 6, max: 6 }).withMessage('Code must be 6 digits'),
+    ],
+    validate,
+    verifyCode
 );
 
 export default router;

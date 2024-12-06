@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 import Restaurant from '../models/restaurantModel.js';
+import crypto from 'crypto';
+import { mailConfig } from '../config/config.js';
+import nodemailer from 'nodemailer';
 
 import { JWT_SECRET } from '../config/config.js';
 
@@ -420,6 +423,69 @@ const listLovedRestaurants = async (req, res, next) => {
     }
 };
 
+/**
+ * Send a verification code to the user's email
+ */
+const sendCode = async (req, res, next) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).send('Email is required');
+    try {
+        let user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const code = crypto.randomInt(100000, 999999).toString();
+        user.code = code;
+        user.codeExpires = Date.now() + 300000;
+
+        await user.save();
+
+        const transporter = nodemailer.createTransport(mailConfig);
+
+        await transporter.sendMail({
+            from: `"Your App" <${process.env.MAIL_USER}>`,
+            to: email,
+            subject: 'Password Reset Code',
+            text: `Your password reset code is: ${code}`,
+            html: `<p>Your password reset code is: <b>${code}</b></p>`
+        });
+
+        res.status(200).json({ message: 'Code sent successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Verify the code sent to the user's email
+ */
+const verifyCode = async (req, res, next) => {
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ message: 'Email and code are required' });
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        if (user.codeExpires < Date.now()) {
+            return res.status(400).json({ message: 'Code expired' });
+        }
+
+        if (user.code !== code) {
+            return res.status(400).json({ message: 'Invalid code' });
+        }
+
+        user.code = undefined;
+        user.codeExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Code verified successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -433,4 +499,6 @@ export {
     addLovedRestaurant,
     removeLovedRestaurant,
     listLovedRestaurants,
+    sendCode,
+    verifyCode
 };
