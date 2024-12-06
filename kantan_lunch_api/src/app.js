@@ -46,20 +46,24 @@ app.use((req, res, next) => {
 // Centralized error handling middleware
 app.use(errorHandler);
 
-// Connect to MongoDB and start the server
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    seedDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`SwaggerUI available at http://localhost:${PORT}/api-docs`);
-      console.log(`Swagger JSON spec available at http://localhost:${PORT}/swagger.json`);
-      console.log(`Mongo Express available at http://localhost:8081`);
+export default app;
+
+// Connect to MongoDB and start the server only if not in test
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log('Connected to MongoDB');
+      seedDB();
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`SwaggerUI available at http://localhost:${PORT}/api-docs`);
+        console.log(`Swagger JSON spec available at http://localhost:${PORT}/swagger.json`);
+        console.log(`Mongo Express available at http://localhost:8081`);
+      });
+    })
+    .catch((err) => {
+      console.error('Error connecting to MongoDB:', err.message);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err.message);
-    process.exit(1);
-  });
+}
