@@ -150,6 +150,7 @@ const router = Router();
  *             example:
  *               type: "Feedback"
  *               caption: "Great service and ambiance!"
+ *               content: "このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。"
  *               media: ["https://example.com/image1.jpg"]
  *               restaurant_id: "60d5ec49f9a1b14a3c8d5678"
  *               rating: 5
@@ -168,8 +169,6 @@ const router = Router();
  *         description: User is banned or not authorized.
  *       404:
  *         description: Related resource not found.
- *       409:
- *         description: Duplicate field value entered.
  */
 router.post(
     '/',
