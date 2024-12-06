@@ -1,5 +1,3 @@
-// src/models/restaurantModel.js
-
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
@@ -11,6 +9,7 @@ const restaurantSchema = new Schema({
     required: true,
     trim: true,
     maxlength: 100,
+    unique: true, 
   },
   media: [{
     type: String,
@@ -74,8 +73,8 @@ const restaurantSchema = new Schema({
 });
 
 // Indexes
+restaurantSchema.index({ name: 1 }, { unique: true }); 
 restaurantSchema.index({ admin_id: 1 });
-// Tạo chỉ mục 2dsphere cho trường location
 restaurantSchema.index({ location: '2dsphere' });
 
 // Static method to calculate and update avg_rating

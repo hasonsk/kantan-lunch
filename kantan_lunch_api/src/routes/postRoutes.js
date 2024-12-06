@@ -119,28 +119,38 @@ const router = Router();
  *               type:
  *                 type: string
  *                 enum: [Feedback, DishFeedback, Comment]
+ *                 description: The type of the post, which can be Feedback, DishFeedback, or Comment.
  *               caption:
  *                 type: string
+ *                 description: A brief caption for the post.
+ *               content:
+ *                 type: string
+ *                 description: The content of the post.
  *               media:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: uri
+ *                   description: URLs of media associated with the post.
+ *                 description: A list of media URLs included in the post. Only required for Feedback and DishFeedback.
  *               restaurant_id:
  *                 type: string
+ *                 description: The ID of the restaurant related to the feedback.
  *               rating:
  *                 type: number
  *                 minimum: 1
  *                 maximum: 5
+ *                 description: The rating given in the feedback, ranging from 1 to 5. Required for Feedback and DishFeedback.
  *               dish_id:
  *                 type: string
- *               feedback_id:
- *                 type: string
+ *                 description: The ID of the dish related to the dish feedback.
  *               post_id:
  *                 type: string
+ *                 description: The ID of the parent post for comments.
  *             example:
  *               type: "Feedback"
  *               caption: "Great service and ambiance!"
+ *               content: "このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。"
  *               media: ["https://example.com/image1.jpg"]
  *               restaurant_id: "60d5ec49f9a1b14a3c8d5678"
  *               rating: 5
@@ -159,8 +169,6 @@ const router = Router();
  *         description: User is banned or not authorized.
  *       404:
  *         description: Related resource not found.
- *       409:
- *         description: Duplicate field value entered.
  */
 router.post(
     '/',
@@ -176,7 +184,11 @@ router.post(
             .withMessage('caption is required')
             .isLength({ max: 500 })
             .withMessage('caption cannot exceed 500 characters'),
+        body('content')
+            .notEmpty()
+            .withMessage('content is required for Post'),
         body('media')
+            .if(body('type').isIn(['Feedback', 'DishFeedback']))
             .isArray({ min: 1 })
             .withMessage('media must be a non-empty array of URLs')
             .bail()
@@ -184,9 +196,9 @@ router.post(
             .withMessage('All media must be valid URLs'),
         // Conditional validations based on type
         body('restaurant_id')
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
+            .if(body('type').isIn(['Feedback']))
             .notEmpty()
-            .withMessage('restaurant_id is required for Feedback and DishFeedback')
+            .withMessage('restaurant_id is required for Feedback')
             .isMongoId()
             .withMessage('restaurant_id must be a valid MongoDB ObjectId'),
         body('rating')
@@ -201,12 +213,6 @@ router.post(
             .withMessage('dish_id is required for DishFeedback')
             .isMongoId()
             .withMessage('dish_id must be a valid MongoDB ObjectId'),
-        body('feedback_id')
-            .if(body('type').equals('DishFeedback'))
-            .notEmpty()
-            .withMessage('feedback_id is required for DishFeedback')
-            .isMongoId()
-            .withMessage('feedback_id must be a valid MongoDB ObjectId'),
         body('post_id')
             .if(body('type').equals('Comment'))
             .notEmpty()
@@ -266,7 +272,7 @@ router.get(
  *       - in: path
  *         name: id
  *         required: true
- *         description: The post ID
+ *         description: The ID of the post to update.
  *         schema:
  *           type: string
  *     requestBody:
@@ -278,26 +284,26 @@ router.get(
  *             properties:
  *               caption:
  *                 type: string
+ *                 description: A brief caption for the post.
+ *               content:
+ *                 type: string
+ *                 description: The content of the post.
  *               media:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: uri
- *               restaurant_id:
- *                 type: string
+ *                   description: URLs of media associated with the post.
+ *                 description: A list of media URLs included in the post.
  *               rating:
  *                 type: number
  *                 minimum: 1
  *                 maximum: 5
- *               dish_id:
- *                 type: string
- *               feedback_id:
- *                 type: string
- *               post_id:
- *                 type: string
+ *                 description: The rating given in the feedback, ranging from 1 to 5.
  *             example:
  *               caption: "Updated caption for the post."
  *               media: ["https://example.com/newimage.jpg"]
+ *               rating: 4
  *     responses:
  *       200:
  *         description: Post updated successfully.
@@ -323,14 +329,12 @@ router.put(
         param('id')
             .isMongoId()
             .withMessage('id must be a valid MongoDB ObjectId'),
-        body('type')
-            .optional()
-            .isIn(['Feedback', 'DishFeedback', 'Comment'])
-            .withMessage('type must be Feedback, DishFeedback, or Comment'),
         body('caption')
             .optional()
             .isLength({ max: 500 })
             .withMessage('caption cannot exceed 500 characters'),
+        body('content')
+            .optional(),
         body('media')
             .optional()
             .isArray({ min: 1 })
@@ -338,32 +342,10 @@ router.put(
             .bail()
             .custom((media) => media.every(url => /^https?:\/\/.+\..+/.test(url)))
             .withMessage('All media must be valid URLs'),
-        // Conditional validations based on type
-        body('restaurant_id')
-            .optional()
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
-            .isMongoId()
-            .withMessage('restaurant_id must be a valid MongoDB ObjectId'),
         body('rating')
             .optional()
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
             .isInt({ min: 1, max: 5 })
             .withMessage('rating must be an integer between 1 and 5'),
-        body('dish_id')
-            .optional()
-            .if(body('type').equals('DishFeedback'))
-            .isMongoId()
-            .withMessage('dish_id must be a valid MongoDB ObjectId'),
-        body('feedback_id')
-            .optional()
-            .if(body('type').equals('DishFeedback'))
-            .isMongoId()
-            .withMessage('feedback_id must be a valid MongoDB ObjectId'),
-        body('post_id')
-            .optional()
-            .if(body('type').equals('Comment'))
-            .isMongoId()
-            .withMessage('post_id must be a valid MongoDB ObjectId'),
     ],
     validate,
     updatePost
