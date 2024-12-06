@@ -430,7 +430,7 @@ const listLovedRestaurants = async (req, res, next) => {
 };
 
 /**
- * Send a verification code to the user's email
+ * Send a verification code to the user's email with improved design
  */
 const sendCode = async (req, res, next) => {
     const { email } = req.body;
@@ -449,13 +449,26 @@ const sendCode = async (req, res, next) => {
 
         const transporter = nodemailer.createTransport(mailConfig);
 
-        await transporter.sendMail({
-            from: `"Your App" <${process.env.MAIL_USER}>`,
+        const mailOptions = {
+            from: `"Kantan Lunch" <${process.env.MAIL_USER}>`,
             to: email,
-            subject: 'Password Reset Code',
-            text: `Your password reset code is: ${code}`,
-            html: `<p>Your password reset code is: <b>${code}</b></p>`
-        });
+            subject: 'Password Reset Verification Code',
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0;">
+                        <h2 style="color: #4CAF50;">Password Reset Verification</h2>
+                        <p>Dear ${user.username},</p>
+                        <p>We have received a request to reset your password. Please use the verification code below to proceed:</p>
+                        <h3 style="color: #4CAF50;">${code}</h3>
+                        <p>This code will expire in 5 minutes. If you did not request a password reset, please ignore this email.</p>
+                        <hr style="border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #777;">© ${new Date().getFullYear()} Kantan Lunch. All rights reserved.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
 
         res.status(200).json({ message: 'Code sent successfully' });
     } catch (error) {
