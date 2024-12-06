@@ -21,6 +21,7 @@
     "kantan_lunch_api": "file:../kantan_lunch_api",
     "mongoose": "^8.8.2",
     "node-geocoder": "^4.4.1",
+    "nodemailer": "^6.9.16",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
