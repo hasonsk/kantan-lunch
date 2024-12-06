@@ -11,10 +11,14 @@ import {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    changePassword,
     registerAdmin,
     getAllUsers,
     getUserById,
     banUnbanUser,
+    addLovedRestaurant,
+    removeLovedRestaurant,
+    listLovedRestaurants,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -462,6 +466,68 @@ router.put(
 
 /**
  * @swagger
+ * /users/change-password:
+ *   put:
+ *     summary: Update the current user's password
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 description: The user's new password
+ *             example:
+ *               currentPassword: "oldpassword123"
+ *               newPassword: "newpassword456"
+ *     responses:
+ *       200:
+ *         description: Password updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
+router.put(
+    '/change-password',
+    authenticate,
+    [
+        body('currentPassword')
+            .notEmpty()
+            .withMessage('Current password is required'),
+        body('newPassword')
+            .notEmpty()
+            .withMessage('New password is required')
+            .isLength({ min: 6 })
+            .withMessage('New password must be at least 6 characters long'),
+    ],
+    validate,
+    changePassword
+);
+
+/**
+ * @swagger
  * /users/register-admin:
  *   post:
  *     summary: Register a new admin user
@@ -509,8 +575,8 @@ router.put(
  */
 router.post(
     '/register-admin',
-    authenticate, 
-    authorizeRoles('admin'), 
+    authenticate,
+    authorizeRoles('admin'),
     [
         body('username')
             .notEmpty()
@@ -786,6 +852,169 @@ router.put(
     ],
     validate,
     banUnbanUser
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   post:
+ *     summary: Add a restaurant to the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - restaurantId
+ *             properties:
+ *               restaurantId:
+ *                 type: string
+ *                 description: Restaurant ID to add
+ *             example:
+ *               restaurantId: "674eed54edd49b6af0d2a0de"
+ *     responses:
+ *       200:
+ *         description: Restaurant added to loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ *   delete:
+ *     summary: Remove a restaurant from the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant ID to remove
+ *     responses:
+ *       200:
+ *         description: Restaurant removed from loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ */
+
+router.post(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        body('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    addLovedRestaurant
+);
+
+router.delete(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    removeLovedRestaurant
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   get:
+ *     summary: List a user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of loved restaurants.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Restaurant'
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User not found.
+ */
+
+router.get(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('page')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Page must be a positive integer'),
+        query('limit')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Limit must be a positive integer'),
+    ],
+    validate,
+    listLovedRestaurants
 );
 
 export default router;
