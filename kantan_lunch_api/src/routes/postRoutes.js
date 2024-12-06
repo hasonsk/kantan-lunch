@@ -155,6 +155,8 @@ const router = Router();
  *         description: Bad request.
  *       401:
  *         description: Unauthorized.
+ *       403:
+ *         description: User is banned or not authorized.
  *       404:
  *         description: Related resource not found.
  *       409:
