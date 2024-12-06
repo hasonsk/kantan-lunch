@@ -67,17 +67,21 @@ const userSchema = new Schema({
     type: profileSchema,
     required: true,
   },
-  loved_restaurants: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Restaurant',
-  }],
+  loved_restaurants: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Restaurant' }],
+    validate: {
+      validator: function (v) {
+        return Array.isArray(v) && new Set(v.map(id => id.toString())).size === v.length;
+      },
+      message: 'loved_restaurants must contain unique items.',
+    },
+  },
   code: {
     type: String
   },
   codeExpires: {
     type: Date
   },
-}, {
   timestamps: true,
 });
 
