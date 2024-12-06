@@ -284,11 +284,6 @@ const banUnbanUser = async (req, res, next) => {
         const { id } = req.params;
         const { banned } = req.body;
 
-        // // Validate ObjectId
-        // if (!mongoose.Types.ObjectId.isValid(id)) {
-        //     return res.status(400).json({ message: 'Invalid user ID format.' });
-        // }
-
         // Validate banned field
         if (banned === undefined) {
             return res.status(400).json({ message: 'Banned status is required.' });
@@ -311,10 +306,15 @@ const banUnbanUser = async (req, res, next) => {
 /**
  * Adds a restaurant to the user's loved_restaurants.
  */
-export const addLovedRestaurant = async (req, res, next) => {
+const addLovedRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { restaurantId } = req.body;
+
+        // Verify that the requester is the user themselves or an admin
+        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+            return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
+        }
 
         // Check if the restaurant exists
         const restaurant = await Restaurant.findById(restaurantId);
@@ -327,7 +327,7 @@ export const addLovedRestaurant = async (req, res, next) => {
             id,
             { $addToSet: { loved_restaurants: restaurantId } },
             { new: true }
-        ).populate('loved_restaurants');
+        ).select('loved_restaurants');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
@@ -342,10 +342,15 @@ export const addLovedRestaurant = async (req, res, next) => {
 /**
  * Removes a restaurant from the user's loved_restaurants.
  */
-export const removeLovedRestaurant = async (req, res, next) => {
+const removeLovedRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { restaurantId } = req.query;
+
+        // Verify that the requester is the user themselves or an admin
+        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+            return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
+        }
 
         // Check if the restaurant exists
         const restaurant = await Restaurant.findById(restaurantId);
@@ -358,13 +363,58 @@ export const removeLovedRestaurant = async (req, res, next) => {
             id,
             { $pull: { loved_restaurants: restaurantId } },
             { new: true }
-        ).populate('loved_restaurants');
+        ).select('loved_restaurants');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
         res.status(200).json({ message: 'Restaurant removed from loved restaurants.', data: user });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Lists the loved restaurants of a user with pagination.
+ */
+const listLovedRestaurants = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Verify that the requester is the user themselves or an admin
+        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+            return res.status(403).json({ message: 'Forbidden: You do not have permission to view this data.' });
+        }
+
+        // Retrieve the user document to get the total count of loved_restaurants
+        const userDoc = await User.findById(id).select('loved_restaurants');
+        if (!userDoc) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const total = userDoc.loved_restaurants.length;
+
+        // Populate loved_restaurants with pagination
+        const user = await User.findById(id)
+            .populate({
+                path: 'loved_restaurants',
+                options: {
+                    skip,
+                    limit,
+                },
+            });
+
+        res.status(200).json({
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            data: user.loved_restaurants,
+        });
     } catch (error) {
         next(error);
     }
@@ -382,4 +432,5 @@ export {
     banUnbanUser,
     addLovedRestaurant,
     removeLovedRestaurant,
+    listLovedRestaurants,
 };

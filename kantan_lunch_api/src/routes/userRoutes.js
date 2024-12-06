@@ -18,6 +18,7 @@ import {
     banUnbanUser,
     addLovedRestaurant,
     removeLovedRestaurant,
+    listLovedRestaurants,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -942,6 +943,78 @@ router.delete(
     ],
     validate,
     removeLovedRestaurant
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   get:
+ *     summary: List a user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of loved restaurants.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Restaurant'
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User not found.
+ */
+
+router.get(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('page')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Page must be a positive integer'),
+        query('limit')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Limit must be a positive integer'),
+    ],
+    validate,
+    listLovedRestaurants
 );
 
 export default router;
