@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
+import Restaurant from '../models/restaurantModel.js';
 
 import { JWT_SECRET } from '../config/config.js';
 
@@ -307,6 +308,68 @@ const banUnbanUser = async (req, res, next) => {
     }
 };
 
+/**
+ * Adds a restaurant to the user's loved_restaurants.
+ */
+export const addLovedRestaurant = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { restaurantId } = req.body;
+
+        // Check if the restaurant exists
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found.' });
+        }
+
+        // Add the restaurant to the user's loved_restaurants if not already added
+        const user = await User.findByIdAndUpdate(
+            id,
+            { $addToSet: { loved_restaurants: restaurantId } },
+            { new: true }
+        ).populate('loved_restaurants');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json({ message: 'Restaurant added to loved restaurants.', data: user });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Removes a restaurant from the user's loved_restaurants.
+ */
+export const removeLovedRestaurant = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { restaurantId } = req.query;
+
+        // Check if the restaurant exists
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({ message: 'Restaurant not found.' });
+        }
+
+        // Remove the restaurant from the user's loved_restaurants
+        const user = await User.findByIdAndUpdate(
+            id,
+            { $pull: { loved_restaurants: restaurantId } },
+            { new: true }
+        ).populate('loved_restaurants');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json({ message: 'Restaurant removed from loved restaurants.', data: user });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -317,4 +380,6 @@ export {
     getAllUsers,
     getUserById,
     banUnbanUser,
+    addLovedRestaurant,
+    removeLovedRestaurant,
 };

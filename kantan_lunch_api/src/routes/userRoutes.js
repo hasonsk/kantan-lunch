@@ -16,6 +16,8 @@ import {
     getAllUsers,
     getUserById,
     banUnbanUser,
+    addLovedRestaurant,
+    removeLovedRestaurant,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -572,8 +574,8 @@ router.put(
  */
 router.post(
     '/register-admin',
-    authenticate, 
-    authorizeRoles('admin'), 
+    authenticate,
+    authorizeRoles('admin'),
     [
         body('username')
             .notEmpty()
@@ -849,6 +851,97 @@ router.put(
     ],
     validate,
     banUnbanUser
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   post:
+ *     summary: Add a restaurant to the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - restaurantId
+ *             properties:
+ *               restaurantId:
+ *                 type: string
+ *                 description: Restaurant ID to add
+ *             example:
+ *               restaurantId: "674eed54edd49b6af0d2a0de"
+ *     responses:
+ *       200:
+ *         description: Restaurant added to loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ *   delete:
+ *     summary: Remove a restaurant from the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant ID to remove
+ *     responses:
+ *       200:
+ *         description: Restaurant removed from loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ */
+
+router.post(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        body('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    addLovedRestaurant
+);
+
+router.delete(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    removeLovedRestaurant
 );
 
 export default router;
