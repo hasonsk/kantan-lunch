@@ -358,6 +358,12 @@ const removeLovedRestaurant = async (req, res, next) => {
             return res.status(404).json({ message: 'Restaurant not found.' });
         }
 
+        // Check if the restaurant is in the user's loved_restaurants
+        const userDoc = await User.findById(id).select('loved_restaurants');
+        if (!userDoc.loved_restaurants.includes(restaurantId)) {
+            return res.status(400).json({ message: 'Restaurant is not in the loved restaurants list.' });
+        }
+
         // Remove the restaurant from the user's loved_restaurants
         const user = await User.findByIdAndUpdate(
             id,
