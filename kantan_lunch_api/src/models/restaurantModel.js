@@ -1,5 +1,3 @@
-// src/models/restaurantModel.js
-
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
