@@ -24,14 +24,14 @@ const generateToken = (id, role) => {
  */
 const registerUser = async (req, res, next) => {
     try {
-        const { 
-            username, 
-            email, 
-            password, 
-            first_name, 
-            last_name, 
-            date_of_birth, 
-            phone_number 
+        const {
+            username,
+            email,
+            password,
+            first_name,
+            last_name,
+            date_of_birth,
+            phone_number
         } = req.body;
 
         // Extract uploaded avatar file
