@@ -545,16 +545,47 @@ router.put(
  * @swagger
  * /users/register-admin:
  *   post:
- *     summary: Register a new admin user
+ *     summary: Register a new admin user (Admin Only)
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - phone_number
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: Admin registered successfully.
@@ -571,13 +602,32 @@ router.put(
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     first_name:
+ *                       type: string
+ *                     last_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
  *                 token:
  *                   type: string
  *               example:
  *                 _id: 60d5ec49f9a1b14a3c8d4567
- *                 username: "adminuser"
+ *                 username: "admin"
  *                 email: "admin@example.com"
  *                 role: "admin"
+ *                 profile:
+ *                   first_name: "Admin"
+ *                   last_name: "User"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -586,12 +636,13 @@ router.put(
  *       403:
  *         description: Forbidden.
  *       409:
- *         description: User with this email or username already exists.
+ *         description: User already exists.
  */
 router.post(
     '/register-admin',
     authenticate,
     authorizeRoles('admin'),
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -608,39 +659,26 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
-            .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
+        body('first_name')
             .notEmpty()
             .withMessage('First name is required')
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .notEmpty()
             .withMessage('Last name is required')
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .notEmpty()
             .withMessage('Phone number is required')
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerAdmin

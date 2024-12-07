@@ -9,6 +9,7 @@ import multer from 'multer';
 import { JWT_SECRET } from '../config/config.js';
 
 const DEFAULT_AVT = 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg';
+const DEFAULT_AVT_ADMIN = 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733587392/default-avatar-admin_xndhuf.jpg';
 
 /**
  * Generates a JWT token for a user.
@@ -197,26 +198,46 @@ const changePassword = async (req, res, next) => {
  */
 const registerAdmin = async (req, res, next) => {
     try {
-        const { username, email, password, profile } = req.body;
+        const { 
+            username, 
+            email, 
+            password, 
+            first_name, 
+            last_name, 
+            date_of_birth, 
+            phone_number 
+        } = req.body;
 
-        // Kiểm tra xem người dùng đã tồn tại chưa
+        // Extract uploaded avatar file
+        const file = req.file;
+
+        // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email or username already exists.' });
         }
 
-        // Tạo admin mới với role 'admin'
+        // Create admin profile object
+        const profile = {
+            first_name,
+            last_name,
+            date_of_birth,
+            phone_number,
+            avatar: file ? file.path : DEFAULT_AVT_ADMIN, // Cloudinary URL for the uploaded avatar, or default avatar
+        };
+
+        // Create new admin user
         const admin = new User({
             username,
             email,
             password,
             profile,
-            role: 'admin', // Thiết lập role là 'admin'
+            role: 'admin', // Set role as admin
         });
 
         const savedAdmin = await admin.save();
 
-        // Tạo JWT
+        // Generate JWT token
         const token = generateToken(savedAdmin._id, savedAdmin.role);
 
         res.status(201).json({
@@ -224,9 +245,20 @@ const registerAdmin = async (req, res, next) => {
             username: savedAdmin.username,
             email: savedAdmin.email,
             role: savedAdmin.role,
+            profile: savedAdmin.profile,
             token,
         });
     } catch (error) {
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle other errors
         next(error);
     }
 };
@@ -293,11 +325,6 @@ const getAllUsers = async (req, res, next) => {
 const getUserById = async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        // // Validate ObjectId
-        // if (!mongoose.Types.ObjectId.isValid(id)) {
-        //     return res.status(400).json({ message: 'Invalid user ID format.' });
-        // }
 
         const user = await User.findById(id).select('-password').populate('loved_restaurants', 'name address');
 
