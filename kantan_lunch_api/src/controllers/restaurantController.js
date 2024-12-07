@@ -3,6 +3,7 @@ import Restaurant from '../models/restaurantModel.js';
 import NodeGeocoder from 'node-geocoder';
 import { getDistance } from 'geolib';
 import mongoose from 'mongoose';
+import multer from 'multer';
 
 // Cấu hình Geocoder
 const geocoderOptions = {
@@ -242,12 +243,14 @@ const createNewRestaurant = async (req, res, next) => {
     try {
         const {
             name,
-            media,
             address,
             phone_number,
             open_time,
-            close_time
+            close_time,
         } = req.body;
+
+        // Extract uploaded files
+        const files = req.files;
 
         // Validate required fields
         if (!name || !address || !phone_number || open_time === undefined || close_time === undefined) {
@@ -261,11 +264,13 @@ const createNewRestaurant = async (req, res, next) => {
             return res.status(400).json({ message: 'open_time and close_time must be in HH:mm format (e.g., 09:00).' });
         }
 
-        // Optionally, validate media URLs if applicable
-        if (media && (!Array.isArray(media) || media.length === 0)) {
-            return res.status(400).json({ message: 'Media must be a non-empty array of URLs.' });
+        // Extract media URLs from uploaded files
+        let media = [];
+        if (files && files.length > 0) {
+            media = files.map(file => file.path); // Cloudinary URL
         }
 
+        // Geocode the address to get latitude and longitude
         const { latitude, longitude } = await geocodeAddress(address);
 
         // Assign admin_id from authenticated user
@@ -281,20 +286,29 @@ const createNewRestaurant = async (req, res, next) => {
             close_time,
             location: {
                 type: 'Point',
-                coordinates: [longitude, latitude]
-            }
+                coordinates: [longitude, latitude],
+            },
         });
 
         const savedRestaurant = await newRestaurant.save();
 
         res.status(201).json(savedRestaurant);
     } catch (error) {
-        // Handle duplicate key error (e.g., unique constraints)
+        if (error instanceof multer.MulterError) {
+          // Handle Multer-specific errors
+          if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+          }
+          return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, PNG, and GIF are allowed.') {
+          return res.status(400).json({ message: error.message });
+        }
+        // Handle duplicate key error
         if (error.code === 11000) {
-            return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });
+          return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });
         }
         next(error);
-    }
+      }
 };
 
 /**
