@@ -421,33 +421,26 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               first_name:
  *                 type: string
- *               email:
+ *               last_name:
  *                 type: string
- *               password:
+ *               date_of_birth:
  *                 type: string
- *               profile:
- *                 $ref: '#/components/schemas/Profile'
- *               loved_restaurants:
- *                 type: array
- *                 items:
- *                   type: string
- *             example:
- *               username: "johnupdated"
- *               email: "johnupdated@example.com"
- *               password: "newsecurepassword"
- *               profile:
- *                 first_name: "Johnny"
- *                 last_name: "Doe"
- *                 date_of_birth: "1990-01-01"
- *                 phone_number: "+1234567890"
- *                 avatar: "https://example.com/newavatar.jpg"
- *               loved_restaurants: ["60d5ec49f9a1b14a3c8d1234"]
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       200:
  *         description: User profile updated successfully.
@@ -459,51 +452,28 @@ router.get(
  *         description: Bad request.
  *       401:
  *         description: Unauthorized.
- *       409:
- *         description: Email or username already in use by another user.
  */
 router.put(
     '/profile',
     authenticate,
+    uploadAvatar,
     [
-        body('username')
-            .optional()
-            .isLength({ min: 3, max: 30 })
-            .withMessage('Username must be between 3 and 30 characters'),
-        body('email')
-            .optional()
-            .isEmail()
-            .withMessage('Invalid email address'),
-        body('password')
-            .optional()
-            .isLength({ min: 6 })
-            .withMessage('Password must be at least 6 characters'),
-        body('profile.first_name')
+        body('first_name')
             .optional()
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .optional()
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     updateUserProfile
