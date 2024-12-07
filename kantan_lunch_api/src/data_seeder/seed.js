@@ -25,7 +25,7 @@ const seedUsers = async () => {
                 last_name: 'User',
                 date_of_birth: new Date('1980-01-01'),
                 phone_number: '+84912345678',
-                avatar: 'https://static.vecteezy.com/system/resources/previews/009/292/244/original/default-avatar-icon-of-social-media-user-vector.jpg',
+                avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg',
             },
         },
         {
@@ -38,7 +38,7 @@ const seedUsers = async () => {
                 last_name: 'Doe',
                 date_of_birth: new Date('1990-05-15'),
                 phone_number: '+84987654321',
-                avatar: 'https://static.vecteezy.com/system/resources/previews/009/292/244/original/default-avatar-icon-of-social-media-user-vector.jpg',
+                avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733542335/kantan_lunch/avatars/eqozecoerlnitx3mdetu.png',
             },
         },
         {
@@ -51,7 +51,7 @@ const seedUsers = async () => {
                 last_name: 'Doe',
                 date_of_birth: new Date('1992-07-20'),
                 phone_number: '+84911223344',
-                avatar: 'https://static.vecteezy.com/system/resources/previews/009/292/244/original/default-avatar-icon-of-social-media-user-vector.jpg',
+                avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg',
             },
         },
         // Add more users...
@@ -71,8 +71,8 @@ const seedRestaurants = async (userIds) => {
             name: 'hàng quà Restaurant - Asian Fusion Food & Coffee',
             address: '13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam',
             media: [
-                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/6d/7a/40/hang-qua-on-13-hang-bong.jpg?w=900&h=500&s=1',
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHxA3Pp1uvkAJQY8P6fsR5zzrFzyYJpVWyvQ&s'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548028/hang-qua-on-13-hang-bong_fhairn.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548063/images_msrhwg.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84123456789',
@@ -83,8 +83,8 @@ const seedRestaurants = async (userIds) => {
             name: 'The Gourmet Corner Restaurant',
             address: '22, Ta Hien, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/28/e8/95/25/restaurant.jpg?w=1200&h=-1&s=1',
-                'https://ik.imagekit.io/tvlk/xpe-asset/AyJ40ZAo1DOyPyKLZ9c3RGQHTP2oT4ZXW+QmPVVkFQiXFSv42UaHGzSmaSzQ8DO5QIbWPZuF+VkYVRk6gh-Vg4ECbfuQRQ4pHjWJ5Rmbtkk=/2000937417198/The%2520Gourmet%2520Corner%2520Restaurant%2520Hanoi%2520-4e5661d4-23c1-44c3-a129-ca7e40d8a28f.jpeg?tr=q-60,c-at_max,w-1280,h-720&_src=imagekit'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548100/restaurant_n2rebq.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548126/The_2520Gourmet_2520Corner_2520Restaurant_2520Hanoi_2520-4e5661d4-23c1-44c3-a129-ca7e40d8a28f_s8zkfl.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84987654321',
@@ -95,8 +95,8 @@ const seedRestaurants = async (userIds) => {
             name: 'Gia Ngư Restaurant',
             address: '27, Gia Ngu, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/12/cc/e4/caption.jpg?w=1200&h=-1&s=1',
-                'https://media-cdn.tripadvisor.com/media/photo-s/19/f4/86/8f/photo5jpg.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548150/caption_z1lgwh.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548168/photo5jpg_fv9l1r.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84911223344',

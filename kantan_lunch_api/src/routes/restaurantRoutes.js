@@ -471,9 +471,29 @@ router.post(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               open_time:
+ *                 type: string
+ *               close_time:
+ *                 type: string
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *             encoding:
+ *               media:
+ *                 style: form
+ *                 explode: true
  *     responses:
  *       200:
  *         description: The restaurant was updated successfully.
@@ -496,6 +516,7 @@ router.put(
   '/:id',
   authenticate, // Ensure only authenticated users can modify restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia, // Handle file uploads for media
   [
     param('id')
       .isMongoId()
@@ -513,21 +534,13 @@ router.put(
       .matches(/^\+?[1-9]\d{1,14}$/)
       .withMessage('Please provide a valid phone number in E.164 format'),
     body('open_time')
-      .notEmpty()
-      .withMessage('Open time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('open_time must be in HH:mm format (e.g., 09:00).'),
     body('close_time')
-      .notEmpty()
-      .withMessage('Close time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   modifyRestaurant

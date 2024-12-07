@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import multer from 'multer';
 import Post from '../models/postModel.js';
 import Restaurant from '../models/restaurantModel.js';
 import Dish from '../models/dishModel.js';
@@ -148,97 +149,56 @@ const getPost = async (req, res, next) => {
 const updatePost = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const { caption, content, rating } = req.body;
+        const files = req.files;
 
-        // Kiểm tra ObjectId
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: 'Invalid Post ID format.' });
+        // Check if the user is banned
+        if (req.user.banned) {
+            return res.status(403).json({ message: 'You are banned from updating posts.' });
         }
 
+        // Find the post to update
         const post = await Post.findById(id);
         if (!post) {
             return res.status(404).json({ message: 'Post not found.' });
         }
 
-        // Kiểm tra quyền cập nhật: Người tạo hoặc admin
+        // Check if the user is the author or an admin
         if (post.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Forbidden: You are not allowed to update this post.' });
+            return res.status(403).json({ message: 'Forbidden. You are not allowed to update this post.' });
         }
 
-        // Xử lý cập nhật dựa trên type
-        if (updates.type && updates.type !== post.type) {
-            return res.status(400).json({ message: 'Cannot change the type of the post.' });
+        // Build the update object
+        const updateFields = {};
+        if (caption !== undefined) updateFields.caption = caption;
+        if (content !== undefined) updateFields.content = content;
+        if (rating !== undefined) updateFields.rating = rating;
+
+        // Handle media uploads
+        if (files && files.length > 0) {
+            const mediaPaths = files.map(file => file.path);
+            updateFields.media = mediaPaths;
         }
 
-        // Nếu cập nhật type-specific fields, kiểm tra
-        switch (post.type) {
-            case 'Feedback':
-            case 'DishFeedback':
-                if (updates.restaurant_id) {
-                    const restaurant = await Restaurant.findById(updates.restaurant_id);
-                    if (!restaurant) {
-                        return res.status(404).json({ message: 'Restaurant not found.' });
-                    }
-                }
-                if (updates.rating !== undefined && (updates.rating < 1 || updates.rating > 5)) {
-                    return res.status(400).json({ message: 'rating must be between 1 and 5.' });
-                }
-                if (post.type === 'DishFeedback') {
-                    if (updates.dish_id) {
-                        const dish = await Dish.findById(updates.dish_id);
-                        if (!dish) {
-                            return res.status(404).json({ message: 'Dish not found.' });
-                        }
-                    }
-                    if (updates.feedback_id) {
-                        const feedbackPost = await Post.findById(updates.feedback_id);
-                        if (!feedbackPost || feedbackPost.type !== 'Feedback') {
-                            return res.status(404).json({ message: 'Parent Feedback Post not found or invalid.' });
-                        }
-                    }
-                }
-                break;
-            case 'Comment':
-                if (updates.post_id) {
-                    const parentPost = await Post.findById(updates.post_id);
-                    if (!parentPost) {
-                        return res.status(404).json({ message: 'Parent Post not found.' });
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-
-        // Nếu loại Post là Feedback hoặc DishFeedback và rating hoặc restaurant_id thay đổi, chúng ta sẽ lưu trữ restaurant_id trước khi cập nhật
-        let oldRestaurantId = post.restaurant_id;
-        let newRestaurantId = updates.restaurant_id || oldRestaurantId;
-
-        // Cập nhật Post
-        const updatedPost = await Post.findByIdAndUpdate(id, updates, {
-            new: true,
-            runValidators: true,
-        })
-            .populate('user_id', 'username email')
-            .populate('restaurant_id', 'name address')
-            .populate('dish_id', 'name description')
-            .populate('feedback_id', 'caption')
-            .populate('post_id', 'caption');
-
-        // Nếu loại Post là Feedback hoặc DishFeedback, cập nhật avg_rating của nhà hàng
-        if (post.type === 'Feedback' || post.type === 'DishFeedback') {
-            // Nếu restaurant_id thay đổi, cập nhật cả nhà hàng cũ và mới
-            if (updates.restaurant_id && updates.restaurant_id !== oldRestaurantId.toString()) {
-                await Restaurant.updateAvgRating(oldRestaurantId);
-                await Restaurant.updateAvgRating(newRestaurantId);
-            } else {
-                await Restaurant.updateAvgRating(newRestaurantId);
-            }
-        }
+        // Update the post
+        const updatedPost = await Post.findByIdAndUpdate(
+            id,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        );
 
         res.status(200).json(updatedPost);
     } catch (error) {
-        // Xử lý lỗi trùng lặp key
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle duplicate key error
         if (error.code === 11000) {
             return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });
         }

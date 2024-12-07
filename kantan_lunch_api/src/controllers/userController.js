@@ -8,6 +8,8 @@ import multer from 'multer';
 
 import { JWT_SECRET } from '../config/config.js';
 
+const DEFAULT_AVT = 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg';
+
 /**
  * Generates a JWT token for a user.
  */
@@ -47,7 +49,7 @@ const registerUser = async (req, res, next) => {
             last_name,
             date_of_birth,
             phone_number,
-            avatar: file ? file.path : undefined, // Cloudinary URL for the uploaded avatar
+            avatar: file ? file.path : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
         };
 
         // Create new user
@@ -141,25 +143,23 @@ const getUserProfile = async (req, res, next) => {
  */
 const updateUserProfile = async (req, res, next) => {
     try {
-        const updates = req.body;
+        const { first_name, last_name, date_of_birth, phone_number } = req.body;
+        const file = req.file;
 
-        // Prevent updating email or username to already existing ones
-        if (updates.email || updates.username) {
-            const existingUser = await User.findOne({
-                $or: [{ email: updates.email }, { username: updates.username }],
-                _id: { $ne: req.user._id },
-            });
-            if (existingUser) {
-                return res.status(409).json({ message: 'Email or username already in use by another user.' });
-            }
-        }
+        // Build the profile update object dynamically
+        const profileUpdates = {};
+        if (first_name !== undefined) profileUpdates['profile.first_name'] = first_name;
+        if (last_name !== undefined) profileUpdates['profile.last_name'] = last_name;
+        if (date_of_birth !== undefined) profileUpdates['profile.date_of_birth'] = date_of_birth;
+        if (phone_number !== undefined) profileUpdates['profile.phone_number'] = phone_number;
+        if (file) profileUpdates['profile.avatar'] = file.path;
 
         // Update user profile
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
-            updates,
+            { $set: profileUpdates },
             { new: true, runValidators: true }
-        ).select('-password').populate('loved_restaurants', 'name address');
+        ).select('-password');
 
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -346,8 +346,8 @@ const addLovedRestaurant = async (req, res, next) => {
         const { id } = req.params;
         const { restaurantId } = req.body;
 
-        // Verify that the requester is the user themselves or an admin
-        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+        // Verify that the requester is the user themselves
+        if (req.user._id.toString() !== id) {
             return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
         }
 
@@ -382,8 +382,8 @@ const removeLovedRestaurant = async (req, res, next) => {
         const { id } = req.params;
         const { restaurantId } = req.query;
 
-        // Verify that the requester is the user themselves or an admin
-        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+        // Verify that the requester is the user themselves
+        if (req.user._id.toString() !== id) {
             return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
         }
 

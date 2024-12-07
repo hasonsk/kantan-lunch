@@ -259,7 +259,7 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -273,9 +273,8 @@ router.get(
  *                 type: array
  *                 items:
  *                   type: string
- *                   format: uri
- *                   description: URLs of media associated with the post.
- *                 description: A list of media URLs included in the post.
+ *                   format: binary
+ *                 description: Media files to be uploaded with the post.
  *               rating:
  *                 type: number
  *                 minimum: 1
@@ -283,8 +282,13 @@ router.get(
  *                 description: The rating given in the feedback, ranging from 1 to 5.
  *             example:
  *               caption: "Updated caption for the post."
- *               media: ["https://example.com/newimage.jpg"]
+ *               content: "Updated content for the post."
+ *               media: [/* binary files *\/]
  *               rating: 4
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       200:
  *         description: Post updated successfully.
@@ -306,6 +310,7 @@ router.get(
 router.put(
     '/:id',
     authenticate,
+    uploadPostMedia,
     [
         param('id')
             .isMongoId()
@@ -316,13 +321,6 @@ router.put(
             .withMessage('caption cannot exceed 500 characters'),
         body('content')
             .optional(),
-        body('media')
-            .optional()
-            .isArray({ min: 1 })
-            .withMessage('media must be a non-empty array of URLs')
-            .bail()
-            .custom((media) => media.every(url => /^https?:\/\/.+\..+/.test(url)))
-            .withMessage('All media must be valid URLs'),
         body('rating')
             .optional()
             .isInt({ min: 1, max: 5 })
