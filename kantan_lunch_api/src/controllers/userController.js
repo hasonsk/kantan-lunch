@@ -8,6 +8,8 @@ import multer from 'multer';
 
 import { JWT_SECRET } from '../config/config.js';
 
+const DEFAULT_AVT = 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg';
+
 /**
  * Generates a JWT token for a user.
  */
@@ -47,7 +49,7 @@ const registerUser = async (req, res, next) => {
             last_name,
             date_of_birth,
             phone_number,
-            avatar: file ? file.path : undefined, // Cloudinary URL for the uploaded avatar
+            avatar: file ? file.path : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
         };
 
         // Create new user
