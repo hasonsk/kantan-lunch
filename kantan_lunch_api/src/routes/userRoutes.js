@@ -1,10 +1,9 @@
-// src/routes/userRoutes.js
-
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js';
-import authorizeRoles from '../middlewares/authorizeRoles.js'; // Middleware to check user roles
+import authorizeRoles from '../middlewares/authorizeRoles.js'; 
+import createUploadMiddleware  from '../middlewares/upload.js';
 
 import {
     registerUser,
@@ -187,6 +186,9 @@ const router = Router();
  *         updatedAt: "2024-04-27T14:00:00.000Z"
  */
 
+// Create an upload middleware for user avatars
+const uploadAvatar = createUploadMiddleware('avatars').single('avatar');
+
 /**
  * @swagger
  * /users/register:
@@ -196,9 +198,41 @@ const router = Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - avatar
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - phone_number
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: User registered successfully.
@@ -215,6 +249,21 @@ const router = Router();
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     first_name:
+ *                       type: string
+ *                     last_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                       format: date
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *                       format: string
  *                 token:
  *                   type: string
  *               example:
@@ -222,6 +271,12 @@ const router = Router();
  *                 username: "johndoe"
  *                 email: "johndoe@example.com"
  *                 role: "user"
+ *                 profile:
+ *                   first_name: "John"
+ *                   last_name: "Doe"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -230,6 +285,7 @@ const router = Router();
  */
 router.post(
     '/register',
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -246,39 +302,26 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
-            .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
+        body('first_name')
             .notEmpty()
             .withMessage('First name is required')
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .notEmpty()
             .withMessage('Last name is required')
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .notEmpty()
             .withMessage('Phone number is required')
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerUser

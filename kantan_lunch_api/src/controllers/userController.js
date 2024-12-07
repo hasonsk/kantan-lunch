@@ -4,6 +4,7 @@ import Restaurant from '../models/restaurantModel.js';
 import crypto from 'crypto';
 import { mailConfig } from '../config/config.js';
 import nodemailer from 'nodemailer';
+import multer from 'multer';
 
 import { JWT_SECRET } from '../config/config.js';
 
@@ -21,13 +22,33 @@ const generateToken = (id, role) => {
  */
 const registerUser = async (req, res, next) => {
     try {
-        const { username, email, password, profile } = req.body;
+        const { 
+            username, 
+            email, 
+            password, 
+            first_name, 
+            last_name, 
+            date_of_birth, 
+            phone_number 
+        } = req.body;
 
-        // Check if user already exists
+        // Extract uploaded avatar file
+        const file = req.file;
+
+        // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email or username already exists.' });
         }
+
+        // Create new user profile object
+        const profile = {
+            first_name,
+            last_name,
+            date_of_birth,
+            phone_number,
+            avatar: file ? file.path : undefined, // Cloudinary URL for the uploaded avatar
+        };
 
         // Create new user
         const user = new User({
@@ -39,7 +60,7 @@ const registerUser = async (req, res, next) => {
 
         const savedUser = await user.save();
 
-        // Generate JWT
+        // Generate JWT token
         const token = generateToken(savedUser._id, savedUser.role);
 
         res.status(201).json({
@@ -47,9 +68,20 @@ const registerUser = async (req, res, next) => {
             username: savedUser.username,
             email: savedUser.email,
             role: savedUser.role,
+            profile: savedUser.profile,
             token,
         });
     } catch (error) {
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle other errors
         next(error);
     }
 };
