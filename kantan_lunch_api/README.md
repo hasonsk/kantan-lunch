@@ -18,27 +18,7 @@
     npm install
     ```
 
-5. Tạo file `.env` trong thư mục `kantan_lunch_api` với nội dung sau:
-    ```properties
-    PORT=3000
-    MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
-    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
-
-    MAIL_SERVICE=gmail # Hoặc service khác
-    MAIL_USER= <your-gmail> 
-    MAIL_PASS= <your-password> # App password lây từ tài khoản Google
-    MAIL_HOST=smtp.gmail.com
-    MAIL_PORT=465
-    MAIL_SECURE=true
-    ```
-
-    Hoặc
-    ```properties
-    PORT=3000
-    MONGO_URI=mongodb://root:example@mongo:27017/api_db?authSource=admin
-    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
-    ```
-    Nếu sử dụng Docker Compose.
+5. Tạo file `.env` trong thư mục `kantan_lunch_api` với nội dung tương tự như file `.env.example`
 
 ### Chạy ứng dụng
 
