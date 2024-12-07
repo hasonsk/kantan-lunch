@@ -91,7 +91,7 @@
   flex-direction: column;
   text-align: left;
   gap: 10px;
-  flex : auto;
+  flex : 2;
 }
 
 .restaurant-name {
