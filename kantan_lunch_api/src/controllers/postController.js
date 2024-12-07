@@ -13,17 +13,19 @@ const createPost = async (req, res, next) => {
             return res.status(403).json({ message: 'You are banned from creating posts.' });
         }
 
-        const { 
-            type, 
-            caption, 
+        const {
+            type,
+            caption,
             content,
-            media, 
-            restaurant_id, 
-            rating, 
-            dish_id, 
-            post_id 
+            restaurant_id,
+            rating,
+            dish_id,
+            post_id
         } = req.body;
         const user_id = req.user._id;
+
+        // Extract uploaded files
+        const files = req.files;
 
         // Kiểm tra các trường bắt buộc dựa trên loại Post
         switch (type) {
@@ -64,6 +66,12 @@ const createPost = async (req, res, next) => {
         // Nếu là Comment, đặt reviewed = true ngay lập tức
         const reviewed = type === 'Comment';
 
+        // Extract media URLs from uploaded files
+        let media = [];
+        if (files && files.length > 0) {
+            media = files.map(file => file.path); // Cloudinary URL
+        }
+
         // Tạo Post mới
         const newPost = new Post({
             type,
@@ -87,7 +95,16 @@ const createPost = async (req, res, next) => {
 
         res.status(201).json(savedPost);
     } catch (error) {
-        // Xử lý lỗi trùng lặp key
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle duplicate key error
         if (error.code === 11000) {
             return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });
         }
