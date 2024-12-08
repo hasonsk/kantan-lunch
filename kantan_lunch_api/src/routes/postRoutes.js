@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
 import validate from '../middlewares/validate.js';
+import createUploadMiddleware  from '../middlewares/upload.js';
 
 import {
     createPost,
@@ -97,6 +98,9 @@ const router = Router();
  *         updatedAt: "2024-04-27T14:00:00.000Z"
  */
 
+// Create an upload middleware for posts
+const uploadPostMedia = createUploadMiddleware('posts').array('media', 5);
+
 /**
  * @swagger
  * /posts:
@@ -108,52 +112,35 @@ const router = Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - type
- *               - caption
- *               - media
  *             properties:
  *               type:
  *                 type: string
  *                 enum: [Feedback, DishFeedback, Comment]
- *                 description: The type of the post, which can be Feedback, DishFeedback, or Comment.
+ *                 description: The type of the post.
  *               caption:
  *                 type: string
- *                 description: A brief caption for the post.
  *               content:
  *                 type: string
- *                 description: The content of the post.
  *               media:
  *                 type: array
  *                 items:
  *                   type: string
- *                   format: uri
- *                   description: URLs of media associated with the post.
- *                 description: A list of media URLs included in the post. Only required for Feedback and DishFeedback.
+ *                   format: binary
  *               restaurant_id:
  *                 type: string
- *                 description: The ID of the restaurant related to the feedback.
  *               rating:
  *                 type: number
- *                 minimum: 1
- *                 maximum: 5
- *                 description: The rating given in the feedback, ranging from 1 to 5. Required for Feedback and DishFeedback.
  *               dish_id:
  *                 type: string
- *                 description: The ID of the dish related to the dish feedback.
  *               post_id:
  *                 type: string
- *                 description: The ID of the parent post for comments.
- *             example:
- *               type: "Feedback"
- *               caption: "Great service and ambiance!"
- *               content: "このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。"
- *               media: ["https://example.com/image1.jpg"]
- *               restaurant_id: "60d5ec49f9a1b14a3c8d5678"
- *               rating: 5
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: Post created successfully.
@@ -173,6 +160,7 @@ const router = Router();
 router.post(
     '/',
     authenticate,
+    uploadPostMedia,
     [
         body('type')
             .notEmpty()
@@ -187,13 +175,6 @@ router.post(
         body('content')
             .notEmpty()
             .withMessage('content is required for Post'),
-        body('media')
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
-            .isArray({ min: 1 })
-            .withMessage('media must be a non-empty array of URLs')
-            .bail()
-            .custom((media) => media.every(url => /^https?:\/\/.+\..+/.test(url)))
-            .withMessage('All media must be valid URLs'),
         // Conditional validations based on type
         body('restaurant_id')
             .if(body('type').isIn(['Feedback']))
@@ -278,7 +259,7 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -292,9 +273,8 @@ router.get(
  *                 type: array
  *                 items:
  *                   type: string
- *                   format: uri
- *                   description: URLs of media associated with the post.
- *                 description: A list of media URLs included in the post.
+ *                   format: binary
+ *                 description: Media files to be uploaded with the post.
  *               rating:
  *                 type: number
  *                 minimum: 1
@@ -302,8 +282,13 @@ router.get(
  *                 description: The rating given in the feedback, ranging from 1 to 5.
  *             example:
  *               caption: "Updated caption for the post."
- *               media: ["https://example.com/newimage.jpg"]
+ *               content: "Updated content for the post."
+ *               media: [/* binary files *\/]
  *               rating: 4
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       200:
  *         description: Post updated successfully.
@@ -325,6 +310,7 @@ router.get(
 router.put(
     '/:id',
     authenticate,
+    uploadPostMedia,
     [
         param('id')
             .isMongoId()
@@ -335,13 +321,6 @@ router.put(
             .withMessage('caption cannot exceed 500 characters'),
         body('content')
             .optional(),
-        body('media')
-            .optional()
-            .isArray({ min: 1 })
-            .withMessage('media must be a non-empty array of URLs')
-            .bail()
-            .custom((media) => media.every(url => /^https?:\/\/.+\..+/.test(url)))
-            .withMessage('All media must be valid URLs'),
         body('rating')
             .optional()
             .isInt({ min: 1, max: 5 })

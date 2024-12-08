@@ -4,8 +4,11 @@ import Restaurant from '../models/restaurantModel.js';
 import crypto from 'crypto';
 import { mailConfig } from '../config/config.js';
 import nodemailer from 'nodemailer';
+import multer from 'multer';
 
 import { JWT_SECRET } from '../config/config.js';
+
+const DEFAULT_AVT = 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg';
 
 /**
  * Generates a JWT token for a user.
@@ -21,13 +24,33 @@ const generateToken = (id, role) => {
  */
 const registerUser = async (req, res, next) => {
     try {
-        const { username, email, password, profile } = req.body;
+        const { 
+            username, 
+            email, 
+            password, 
+            first_name, 
+            last_name, 
+            date_of_birth, 
+            phone_number 
+        } = req.body;
 
-        // Check if user already exists
+        // Extract uploaded avatar file
+        const file = req.file;
+
+        // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email or username already exists.' });
         }
+
+        // Create new user profile object
+        const profile = {
+            first_name,
+            last_name,
+            date_of_birth,
+            phone_number,
+            avatar: file ? file.path : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
+        };
 
         // Create new user
         const user = new User({
@@ -39,7 +62,7 @@ const registerUser = async (req, res, next) => {
 
         const savedUser = await user.save();
 
-        // Generate JWT
+        // Generate JWT token
         const token = generateToken(savedUser._id, savedUser.role);
 
         res.status(201).json({
@@ -47,9 +70,20 @@ const registerUser = async (req, res, next) => {
             username: savedUser.username,
             email: savedUser.email,
             role: savedUser.role,
+            profile: savedUser.profile,
             token,
         });
     } catch (error) {
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle other errors
         next(error);
     }
 };
@@ -109,25 +143,23 @@ const getUserProfile = async (req, res, next) => {
  */
 const updateUserProfile = async (req, res, next) => {
     try {
-        const updates = req.body;
+        const { first_name, last_name, date_of_birth, phone_number } = req.body;
+        const file = req.file;
 
-        // Prevent updating email or username to already existing ones
-        if (updates.email || updates.username) {
-            const existingUser = await User.findOne({
-                $or: [{ email: updates.email }, { username: updates.username }],
-                _id: { $ne: req.user._id },
-            });
-            if (existingUser) {
-                return res.status(409).json({ message: 'Email or username already in use by another user.' });
-            }
-        }
+        // Build the profile update object dynamically
+        const profileUpdates = {};
+        if (first_name !== undefined) profileUpdates['profile.first_name'] = first_name;
+        if (last_name !== undefined) profileUpdates['profile.last_name'] = last_name;
+        if (date_of_birth !== undefined) profileUpdates['profile.date_of_birth'] = date_of_birth;
+        if (phone_number !== undefined) profileUpdates['profile.phone_number'] = phone_number;
+        if (file) profileUpdates['profile.avatar'] = file.path;
 
         // Update user profile
         const updatedUser = await User.findByIdAndUpdate(
             req.user._id,
-            updates,
+            { $set: profileUpdates },
             { new: true, runValidators: true }
-        ).select('-password').populate('loved_restaurants', 'name address');
+        ).select('-password');
 
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -314,8 +346,8 @@ const addLovedRestaurant = async (req, res, next) => {
         const { id } = req.params;
         const { restaurantId } = req.body;
 
-        // Verify that the requester is the user themselves or an admin
-        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+        // Verify that the requester is the user themselves
+        if (req.user._id.toString() !== id) {
             return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
         }
 
@@ -350,8 +382,8 @@ const removeLovedRestaurant = async (req, res, next) => {
         const { id } = req.params;
         const { restaurantId } = req.query;
 
-        // Verify that the requester is the user themselves or an admin
-        if (req.user._id.toString() !== id && !req.user.role.includes('admin')) {
+        // Verify that the requester is the user themselves
+        if (req.user._id.toString() !== id) {
             return res.status(403).json({ message: 'Forbidden: You do not have permission to perform this action.' });
         }
 
@@ -430,7 +462,7 @@ const listLovedRestaurants = async (req, res, next) => {
 };
 
 /**
- * Send a verification code to the user's email
+ * Send a verification code to the user's email with improved design
  */
 const sendCode = async (req, res, next) => {
     const { email } = req.body;
@@ -449,13 +481,26 @@ const sendCode = async (req, res, next) => {
 
         const transporter = nodemailer.createTransport(mailConfig);
 
-        await transporter.sendMail({
-            from: `"Your App" <${process.env.MAIL_USER}>`,
+        const mailOptions = {
+            from: `"Kantan Lunch" <${process.env.MAIL_USER}>`,
             to: email,
-            subject: 'Password Reset Code',
-            text: `Your password reset code is: ${code}`,
-            html: `<p>Your password reset code is: <b>${code}</b></p>`
-        });
+            subject: 'Password Reset Verification Code',
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0;">
+                        <h2 style="color: #4CAF50;">Password Reset Verification</h2>
+                        <p>Dear ${user.username},</p>
+                        <p>We have received a request to reset your password. Please use the verification code below to proceed:</p>
+                        <h3 style="color: #4CAF50;">${code}</h3>
+                        <p>This code will expire in 5 minutes. If you did not request a password reset, please ignore this email.</p>
+                        <hr style="border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #777;">© ${new Date().getFullYear()} Kantan Lunch. All rights reserved.</p>
+                    </div>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
 
         res.status(200).json({ message: 'Code sent successfully' });
     } catch (error) {

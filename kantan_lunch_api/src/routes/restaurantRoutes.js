@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
-import authenticate from '../middlewares/authenticate.js'; // Import your authentication middleware
+import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware  from '../middlewares/upload.js';
 
 import {
   listRestaurants,
@@ -117,11 +118,6 @@ const router = Router();
  *         name:
  *           type: string
  *           description: Name of the restaurant
- *         media:
- *           type: array
- *           items:
- *             type: string
- *           description: Array of media URLs
  *         address:
  *           type: string
  *           description: Address of the restaurant
@@ -134,12 +130,14 @@ const router = Router();
  *         close_time:
  *           type: string
  *           description: Closing time in HH:MM format (e.g., 21:00)
+ *       required:
+ *         - name
+ *         - address
+ *         - phone_number
+ *         - open_time
+ *         - close_time
  *       example:
  *         name: "The Gourmet Kitchen"
- *         media: [
- *           "https://example.com/image1.jpg",
- *           "https://example.com/image2.jpg"
- *         ]
  *         address: "123 Culinary Street, Foodville"
  *         phone_number: "+1234567890"
  *         open_time: "09:00"
@@ -360,6 +358,9 @@ router.get(
   fetchRestaurantById
 );
 
+// Create an upload middleware for restaurants
+const uploadRestaurantMedia = createUploadMiddleware('restaurants').array('media', 5);
+
 /**
  * @swagger
  * /restaurants:
@@ -371,9 +372,35 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               open_time:
+ *                 type: string
+ *               close_time:
+ *                 type: string
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *             required:
+ *               - name
+ *               - address
+ *               - phone_number
+ *               - open_time
+ *               - close_time
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: The restaurant was successfully created.
@@ -394,6 +421,7 @@ router.post(
   '/',
   authenticate, // Ensure only authenticated users can create restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia, // Use the dynamic upload middleware
   [
     body('name')
       .notEmpty()
@@ -420,12 +448,6 @@ router.post(
       .withMessage('Close time is required')
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   createNewRestaurant
@@ -449,9 +471,29 @@ router.post(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               open_time:
+ *                 type: string
+ *               close_time:
+ *                 type: string
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *             encoding:
+ *               media:
+ *                 style: form
+ *                 explode: true
  *     responses:
  *       200:
  *         description: The restaurant was updated successfully.
@@ -474,6 +516,7 @@ router.put(
   '/:id',
   authenticate, // Ensure only authenticated users can modify restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia, // Handle file uploads for media
   [
     param('id')
       .isMongoId()
@@ -491,21 +534,13 @@ router.put(
       .matches(/^\+?[1-9]\d{1,14}$/)
       .withMessage('Please provide a valid phone number in E.164 format'),
     body('open_time')
-      .notEmpty()
-      .withMessage('Open time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('open_time must be in HH:mm format (e.g., 09:00).'),
     body('close_time')
-      .notEmpty()
-      .withMessage('Close time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   modifyRestaurant

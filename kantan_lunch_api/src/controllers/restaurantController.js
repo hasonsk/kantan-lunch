@@ -3,6 +3,7 @@ import Restaurant from '../models/restaurantModel.js';
 import NodeGeocoder from 'node-geocoder';
 import { getDistance } from 'geolib';
 import mongoose from 'mongoose';
+import multer from 'multer';
 
 // Cấu hình Geocoder
 const geocoderOptions = {
@@ -242,12 +243,14 @@ const createNewRestaurant = async (req, res, next) => {
     try {
         const {
             name,
-            media,
             address,
             phone_number,
             open_time,
-            close_time
+            close_time,
         } = req.body;
+
+        // Extract uploaded files
+        const files = req.files;
 
         // Validate required fields
         if (!name || !address || !phone_number || open_time === undefined || close_time === undefined) {
@@ -261,11 +264,13 @@ const createNewRestaurant = async (req, res, next) => {
             return res.status(400).json({ message: 'open_time and close_time must be in HH:mm format (e.g., 09:00).' });
         }
 
-        // Optionally, validate media URLs if applicable
-        if (media && (!Array.isArray(media) || media.length === 0)) {
-            return res.status(400).json({ message: 'Media must be a non-empty array of URLs.' });
+        // Extract media URLs from uploaded files
+        let media = [];
+        if (files && files.length > 0) {
+            media = files.map(file => file.path); // Cloudinary URL
         }
 
+        // Geocode the address to get latitude and longitude
         const { latitude, longitude } = await geocodeAddress(address);
 
         // Assign admin_id from authenticated user
@@ -281,15 +286,24 @@ const createNewRestaurant = async (req, res, next) => {
             close_time,
             location: {
                 type: 'Point',
-                coordinates: [longitude, latitude]
-            }
+                coordinates: [longitude, latitude],
+            },
         });
 
         const savedRestaurant = await newRestaurant.save();
 
         res.status(201).json(savedRestaurant);
     } catch (error) {
-        // Handle duplicate key error (e.g., unique constraints)
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
+        // Handle duplicate key error
         if (error.code === 11000) {
             return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });
         }
@@ -304,47 +318,82 @@ const createNewRestaurant = async (req, res, next) => {
 const modifyRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const { name, address, phone_number, open_time, close_time } = req.body;
+        const files = req.files;
 
-        // Fetch the restaurant to verify ownership
+        // Fetch the restaurant to verify existence
         const restaurant = await Restaurant.findById(id);
         if (!restaurant) {
             return res.status(404).json({ message: 'Restaurant not found.' });
         }
 
-        // If updating open_time or close_time, validate the format
-        if (updates.open_time !== undefined || updates.close_time !== undefined) {
-            const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
-            const newOpenTime = updates.open_time !== undefined ? updates.open_time : restaurant.open_time;
-            const newCloseTime = updates.close_time !== undefined ? updates.close_time : restaurant.close_time;
+        // Initialize the update object
+        const updateFields = {};
 
-            if (!timeRegex.test(newOpenTime) || !timeRegex.test(newCloseTime)) {
-                return res.status(400).json({ message: 'open_time and close_time must be in HH:mm format (e.g., 09:00).' });
-            }
+        // Update name if provided
+        if (name !== undefined) {
+            updateFields.name = name;
         }
 
-        // If updating media, ensure it's a non-empty array
-        if (updates.media && (!Array.isArray(updates.media) || updates.media.length === 0)) {
-            return res.status(400).json({ message: 'Media must be a non-empty array of URLs.' });
-        }
-
-        // If updating address, geocode it to get coordinates
-        if (updates.address && updates.address !== restaurant.address) {
-            const { latitude, longitude } = await geocodeAddress(updates.address);
-            updates.location = {
+        // Update address if provided
+        if (address !== undefined) {
+            updateFields.address = address;
+            // Geocode the new address to get coordinates
+            const { latitude, longitude } = await geocodeAddress(address);
+            updateFields.location = {
                 type: 'Point',
                 coordinates: [longitude, latitude]
             };
         }
 
+        // Update phone_number if provided
+        if (phone_number !== undefined) {
+            updateFields.phone_number = phone_number;
+        }
+
+        // Validate and update open_time if provided
+        if (open_time !== undefined) {
+            const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
+            if (!timeRegex.test(open_time)) {
+                return res.status(400).json({ message: 'open_time must be in HH:mm format (e.g., 09:00).' });
+            }
+            updateFields.open_time = open_time;
+        }
+
+        // Validate and update close_time if provided
+        if (close_time !== undefined) {
+            const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
+            if (!timeRegex.test(close_time)) {
+                return res.status(400).json({ message: 'close_time must be in HH:mm format (e.g., 21:00).' });
+            }
+            updateFields.close_time = close_time;
+        }
+
+        // Handle media uploads
+        if (files && files.length > 0) {
+            // Extract file paths from uploaded files
+            const mediaPaths = files.map(file => file.path); // Replace backslashes with forward slashes for consistency
+            updateFields.media = mediaPaths;
+        }
+
         // Update the restaurant
-        const updatedRestaurant = await Restaurant.findByIdAndUpdate(id, updates, {
-            new: true,
-            runValidators: true,
-        }).populate('admin_id', 'username email');
+        const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+            id,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+        );
 
         res.status(200).json(updatedRestaurant);
     } catch (error) {
+        if (error instanceof multer.MulterError) {
+            // Handle Multer-specific errors
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
+            }
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Invalid file type. Only JPEG, PNG, and GIF are allowed.') {
+            return res.status(400).json({ message: error.message });
+        }
         // Handle duplicate key error
         if (error.code === 11000) {
             return res.status(409).json({ message: 'Duplicate field value entered.', details: error.keyValue });

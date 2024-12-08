@@ -82,7 +82,8 @@ const userSchema = new Schema({
   codeExpires: {
     type: Date
   },
-  timestamps: true,
+}, {
+  timestamps: true
 });
 
 // Indexes
