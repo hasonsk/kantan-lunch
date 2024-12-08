@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css'; // Đảm bảo import file CSS tổng quát
-import HomePage from './pages/home/HomePage'
+import HomePage from './pages/home/HomePage';
 import RestaurantList from './pages/restaurant/RestaurantList';
 import RestaurantDetail from './pages/restaurant/RestaurantDetail';
 import Header from './components/commons/Header';
 import Footer from './components/commons/Footer';
+import UpLoadPostPage from './pages/post/UploadPost';
 function App() {
   return (
     <Router>
@@ -18,6 +19,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/restaurant-list" element={<RestaurantList />} />
             <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+            <Route path="/comment" element={<UpLoadPostPage />} />
           </Routes>
         </main>
         {/* Footer luôn xuất hiện */}
