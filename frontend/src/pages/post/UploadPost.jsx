@@ -1,6 +1,7 @@
 import React, { use, useEffect, useState } from 'react';
 import restaurantData from '../restaurant/restaurantData';
 import './UpLoadPost.css';
+import { createPost } from '../../api/post';
 
 const UpLoadPostPage = () => {
   const [restaurantSearch, setRestaurant] = useState('');
@@ -14,6 +15,8 @@ const UpLoadPostPage = () => {
   const [fixed, isFixed] = useState(0);
   const [row, setRow] = useState(5);
   const [previewPictures, setPreviewPicture] = useState([]);
+  const [textArea, setTextArea] = useState();
+  const [errMessage, setErrMessage] = useState();
 
   const handlePreviewPicture = (e) => {
     const test = Array.from(e.target.files);
@@ -34,6 +37,13 @@ const UpLoadPostPage = () => {
     formData.append('restaurant_id', isVisble1);
     formData.append('dish_id', isVisble2);
     formData.append('rating', fixed);
+    formData.append('content', textArea);
+    try {
+      await createPost(formData);
+    } catch (e) {
+      setErrMessage(e.message);
+      console.log(e);
+    }
   };
 
   return (
@@ -178,7 +188,12 @@ const UpLoadPostPage = () => {
         <div className="formInput">
           <h2 className="formInput">コメントを聞く</h2>
           <div className="formInput">
-            <textarea placeholder="Start writing here" rows={25} />
+            <textarea
+              placeholder="Start writing here"
+              rows={25}
+              value={textArea}
+              onChange={(e) => setTextArea(e.target.value)}
+            />
           </div>
         </div>
         <div className="formInput">
