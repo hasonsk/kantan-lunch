@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 import { PORT, MONGO_URI } from './config/config.js';
 import logger from './middlewares/logger.js';
@@ -16,6 +17,9 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig.js';
 
 const app = express();
+
+// Allow all origins (development)
+app.use(cors());
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
