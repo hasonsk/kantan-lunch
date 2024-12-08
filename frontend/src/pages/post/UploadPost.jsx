@@ -13,6 +13,14 @@ const UpLoadPostPage = () => {
   const [hover, setRatingHover] = useState(0);
   const [fixed, isFixed] = useState(0);
   const [row, setRow] = useState(5);
+  const [previewPictures, setPreviewPicture] = useState([]);
+
+  const handlePreviewPicture = (e) => {
+    const test = Array.from(e.target.files);
+    const imageUrls = test.map((picture) => URL.createObjectURL(picture));
+    console.log(imageUrls);
+    setPreviewPicture((prevPictures) => [imageUrls, ...prevPictures]);
+  };
 
   const handleSubmit = async () => {
     console.log('hello');
@@ -170,18 +178,31 @@ const UpLoadPostPage = () => {
         <div className="formInput">
           <h2 className="formInput">コメントを聞く</h2>
           <div className="formInput">
-            <textarea placeholder="Start writing here" cols={100} rows={50} />
+            <textarea placeholder="Start writing here" rows={25} />
           </div>
         </div>
         <div className="formInput">
           <h2 className="formInput">Upload file(s)</h2>
-          <div className="formInput">
+          <div className="formInput image-upload">
+            <label for="fileInput">
+              <i class="attach-doc fa-solid fa-upload"></i>
+            </label>
             <input
               type="file"
               id="fileInput"
               multiple
               accept=".jpeg,.jpg,.jfif,.pjpeg,.pjp,.png"
+              onChange={(e) => handlePreviewPicture(e)}
             />
+          </div>
+          <div className="previewProfilePic formInput">
+            {previewPictures ? (
+              previewPictures.map((picture) => (
+                <img className="picture" src={picture && picture}></img>
+              ))
+            ) : (
+              <></>
+            )}
           </div>
         </div>
         <div className="formInput">

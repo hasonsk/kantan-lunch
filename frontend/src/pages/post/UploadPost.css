@@ -2,10 +2,8 @@
   color: gold;
 }
 textarea {
-  resize: vertical;
-}
-
-form {
+  resize: none;
+  width: 100%;
 }
 
 input {
@@ -37,4 +35,17 @@ input {
   padding: 5px;
   margin: 0px 20px;
   text-align: center;
+}
+
+.image-upload > input {
+  display: none;
+}
+.attach-doc {
+  cursor: pointer;
+  color: black;
+}
+
+.picture {
+  height: 200px;
+  margin: 5px;
 }
