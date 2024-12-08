@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css'; // Đảm bảo import file CSS tổng quát
+import Home from './pages/home/HomePage';
+import RestaurantList from './pages/restaurant/RestaurantList';
+import RestaurantDetail from './pages/restaurant/RestaurantDetail';
+import Header from './components/commons/Header';
+import Footer from './components/commons/Footer';
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
+    <Router>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {/* Header luôn xuất hiện */}
+        <Header />
+        <main>
+          {/* Các route chính */}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/restaurant-list" element={<RestaurantList />} />
+            <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+          </Routes>
+        </main>
+        {/* Footer luôn xuất hiện */}
+        <Footer />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+export default App;
