@@ -71,8 +71,8 @@ const seedRestaurants = async (userIds) => {
             name: 'hàng quà Restaurant - Asian Fusion Food & Coffee',
             address: '13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam',
             media: [
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548028/hang-qua-on-13-hang-bong_fhairn.jpg',
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548063/images_msrhwg.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733536704/kantan_lunch/restaurants/kqfz2t3i9jauumz442kd.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548028/hang-qua-on-13-hang-bong_fhairn.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84123456789',
@@ -83,8 +83,8 @@ const seedRestaurants = async (userIds) => {
             name: 'The Gourmet Corner Restaurant',
             address: '22, Ta Hien, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548100/restaurant_n2rebq.jpg',
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548126/The_2520Gourmet_2520Corner_2520Restaurant_2520Hanoi_2520-4e5661d4-23c1-44c3-a129-ca7e40d8a28f_s8zkfl.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548063/images_msrhwg.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548100/restaurant_n2rebq.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84987654321',
