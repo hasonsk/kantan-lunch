@@ -80,20 +80,20 @@ const ReviewManagement = () => {
                                 <div key={post.id} className="post-card">
                                     <div className="post-header">
                                         <div className="post-avatar">
-                                            <img src={post.avatarUrl || 'default-avatar.jpg'} alt="User Avatar"/>
+                                            <img src={post.media[0] || 'default-avatar.jpg'} alt="User Avatar"/>
                                         </div>
                                         <div className="post-user-info">
-                                            <h3>{post.userName}</h3>
-                                            <p>総レビュー数: {post.reviewCount}</p>
+                                            <h3>{post.user}</h3>
+                                            <p>総レビュー数: {post.reviewCount || 0}</p>
                                         </div>
                                     </div>
                                     <div className="post-body">
+                                        <p className="post-date">{post.created}</p>
                                         <p className="post-content">{post.content}</p>
-                                        <p className="post-date">{post.date}</p>
-                                    </div>
-                                    <div className="post-footer">
-                                        <button className="reject-button">拒否する</button>
-                                        <button className="accept-button">受け入れる</button>
+                                        <div className="post-footer">
+                                            <button className="reject-button">拒否する</button>
+                                            <button className="accept-button">受け入れる</button>
+                                        </div>
                                     </div>
                                 </div>
                             );
