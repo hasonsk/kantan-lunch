@@ -1,7 +1,7 @@
 import React, { use, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import restaurantData from '../restaurant/restaurantData';
-import './UpLoadPost.css';
+import './UploadPost.jsx';
 import { createPost } from '../../api/post';
 import { useNavigate } from 'react-router-dom';
 

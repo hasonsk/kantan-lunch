@@ -16,7 +16,7 @@ const PostList = ({ posts }) => {
     <div className="post-list-container">
       <div className="post-header">
         <h2>レビュー</h2>
-        <button type="button" className="btn btn-primary btn-rounded" data-mdb-ripple-init onClick={() => navigate(`/restaurants/${posts[0]?._id}/write-post`)}>貢献したいですか？</button>
+        <button type="button" className="btn btn-primary btn-rounded" data-mdb-ripple-init onClick={() => navigate(`/restaurants/write-post?restaurantID=${posts[0]?._id}`)}>貢献したいですか？</button>
       </div>
       <ul className="post-list">
         {totalPages === 0 ? (
