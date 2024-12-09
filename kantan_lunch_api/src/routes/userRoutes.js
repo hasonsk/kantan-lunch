@@ -1,20 +1,25 @@
-// src/routes/userRoutes.js
-
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js';
-import authorizeRoles from '../middlewares/authorizeRoles.js'; // Middleware to check user roles
+import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
     registerUser,
     loginUser,
     getUserProfile,
     updateUserProfile,
+    changePassword,
     registerAdmin,
     getAllUsers,
     getUserById,
     banUnbanUser,
+    addLovedRestaurant,
+    removeLovedRestaurant,
+    listLovedRestaurants,
+    sendCode,
+    verifyCode,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -181,6 +186,13 @@ const router = Router();
  *         updatedAt: "2024-04-27T14:00:00.000Z"
  */
 
+// Create an upload middleware for user avatars
+const uploadAvatar = createUploadMiddleware({
+    fieldName: 'avatar',
+    folder: 'avatars',
+    multiple: false,
+});
+
 /**
  * @swagger
  * /users/register:
@@ -190,9 +202,41 @@ const router = Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - avatar
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - phone_number
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: User registered successfully.
@@ -209,6 +253,21 @@ const router = Router();
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     first_name:
+ *                       type: string
+ *                     last_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                       format: date
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *                       format: string
  *                 token:
  *                   type: string
  *               example:
@@ -216,6 +275,12 @@ const router = Router();
  *                 username: "johndoe"
  *                 email: "johndoe@example.com"
  *                 role: "user"
+ *                 profile:
+ *                   first_name: "John"
+ *                   last_name: "Doe"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -224,6 +289,7 @@ const router = Router();
  */
 router.post(
     '/register',
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -240,39 +306,26 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
-            .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
+        body('first_name')
             .notEmpty()
             .withMessage('First name is required')
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .notEmpty()
             .withMessage('Last name is required')
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .notEmpty()
             .withMessage('Phone number is required')
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerUser
@@ -372,33 +425,26 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               first_name:
  *                 type: string
- *               email:
+ *               last_name:
  *                 type: string
- *               password:
+ *               date_of_birth:
  *                 type: string
- *               profile:
- *                 $ref: '#/components/schemas/Profile'
- *               loved_restaurants:
- *                 type: array
- *                 items:
- *                   type: string
- *             example:
- *               username: "johnupdated"
- *               email: "johnupdated@example.com"
- *               password: "newsecurepassword"
- *               profile:
- *                 first_name: "Johnny"
- *                 last_name: "Doe"
- *                 date_of_birth: "1990-01-01"
- *                 phone_number: "+1234567890"
- *                 avatar: "https://example.com/newavatar.jpg"
- *               loved_restaurants: ["60d5ec49f9a1b14a3c8d1234"]
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       200:
  *         description: User profile updated successfully.
@@ -410,51 +456,28 @@ router.get(
  *         description: Bad request.
  *       401:
  *         description: Unauthorized.
- *       409:
- *         description: Email or username already in use by another user.
  */
 router.put(
     '/profile',
     authenticate,
+    uploadAvatar,
     [
-        body('username')
-            .optional()
-            .isLength({ min: 3, max: 30 })
-            .withMessage('Username must be between 3 and 30 characters'),
-        body('email')
-            .optional()
-            .isEmail()
-            .withMessage('Invalid email address'),
-        body('password')
-            .optional()
-            .isLength({ min: 6 })
-            .withMessage('Password must be at least 6 characters'),
-        body('profile.first_name')
+        body('first_name')
             .optional()
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .optional()
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     updateUserProfile
@@ -462,9 +485,9 @@ router.put(
 
 /**
  * @swagger
- * /users/register-admin:
- *   post:
- *     summary: Register a new admin user
+ * /users/change-password:
+ *   put:
+ *     summary: Update the current user's password
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -473,7 +496,100 @@ router.put(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 description: The user's new password
+ *             example:
+ *               currentPassword: "oldpassword123"
+ *               newPassword: "newpassword456"
+ *     responses:
+ *       200:
+ *         description: Password updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
+router.put(
+    '/change-password',
+    authenticate,
+    [
+        body('currentPassword')
+            .notEmpty()
+            .withMessage('Current password is required'),
+        body('newPassword')
+            .notEmpty()
+            .withMessage('New password is required')
+            .isLength({ min: 6 })
+            .withMessage('New password must be at least 6 characters long'),
+    ],
+    validate,
+    changePassword
+);
+
+/**
+ * @swagger
+ * /users/register-admin:
+ *   post:
+ *     summary: Register a new admin user (Admin Only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               phone_number:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - phone_number
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: Admin registered successfully.
@@ -490,13 +606,32 @@ router.put(
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     first_name:
+ *                       type: string
+ *                     last_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
  *                 token:
  *                   type: string
  *               example:
  *                 _id: 60d5ec49f9a1b14a3c8d4567
- *                 username: "adminuser"
+ *                 username: "admin"
  *                 email: "admin@example.com"
  *                 role: "admin"
+ *                 profile:
+ *                   first_name: "Admin"
+ *                   last_name: "User"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -505,12 +640,13 @@ router.put(
  *       403:
  *         description: Forbidden.
  *       409:
- *         description: User with this email or username already exists.
+ *         description: User already exists.
  */
 router.post(
     '/register-admin',
-    authenticate, 
-    authorizeRoles('admin'), 
+    authenticate,
+    authorizeRoles('admin'),
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -527,39 +663,26 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
-            .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
+        body('first_name')
             .notEmpty()
             .withMessage('First name is required')
             .isString()
             .withMessage('First name must be a string'),
-        body('profile.last_name')
+        body('last_name')
             .notEmpty()
             .withMessage('Last name is required')
             .isString()
             .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+        body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .notEmpty()
             .withMessage('Phone number is required')
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerAdmin
@@ -786,6 +909,268 @@ router.put(
     ],
     validate,
     banUnbanUser
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   post:
+ *     summary: Add a restaurant to the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - restaurantId
+ *             properties:
+ *               restaurantId:
+ *                 type: string
+ *                 description: Restaurant ID to add
+ *             example:
+ *               restaurantId: "674eed54edd49b6af0d2a0de"
+ *     responses:
+ *       200:
+ *         description: Restaurant added to loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ *   delete:
+ *     summary: Remove a restaurant from the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant ID to remove
+ *     responses:
+ *       200:
+ *         description: Restaurant removed from loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ */
+
+router.post(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        body('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    addLovedRestaurant
+);
+
+router.delete(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    removeLovedRestaurant
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   get:
+ *     summary: List a user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of loved restaurants.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Restaurant'
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User not found.
+ */
+
+router.get(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('page')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Page must be a positive integer'),
+        query('limit')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Limit must be a positive integer'),
+    ],
+    validate,
+    listLovedRestaurants
+);
+
+/**
+ * @swagger
+ * /users/send-code:
+ *   post:
+ *     summary: Send a verification code to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *             required:
+ *               - email
+ *             example:
+ *               email: user@example.com
+ *     responses:
+ *       200:
+ *         description: Code has been sent to the user's email successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code sent successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/send-code',
+    [body('email').isEmail().withMessage('Invalid email')],
+    validate, // Middleware validate lỗi từ express-validator
+    sendCode
+);
+
+/**
+ * @swagger
+ * /users/verify-code:
+ *   post:
+ *     summary: Verify the code sent to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *             required:
+ *               - email
+ *               - code
+ *             example:
+ *               email: user@example.com
+ *               code: "123456"
+ *     responses:
+ *       200:
+ *         description: Code has been verified successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code verified successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/verify-code',
+    [
+        body('email').isEmail().withMessage('Invalid email'),
+        body('code').isLength({ min: 6, max: 6 }).withMessage('Code must be 6 digits'),
+    ],
+    validate,
+    verifyCode
 );
 
 export default router;

@@ -14,13 +14,19 @@ const DishList = ({ dishes }) => {
     <div className="dish-list-container">
       <h2>メニュー</h2>
       <ul className="dish-list">
-        {currentItems.map((item) => <DishCard key={item.id} item={item} />)}
+        {totalPages === 0 ? (
+          <li>まだ料理がありません。</li> // Message when there are no dishes
+        ) : (
+          currentItems.map((item) => <DishCard key={item.id} item={item} />)
+        )}
       </ul>
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr; </button>
-        <span>{currentPage} / {totalPages}</span>
-        <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}> &rarr;</button>
-      </div>
+      {totalPages > 0 && ( // Only show pagination if there are dishes
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>
+          <span>{currentPage} / {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}>&rarr;</button>
+        </div>
+      )}
     </div>
   );
 };

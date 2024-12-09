@@ -11,7 +11,6 @@ import Like from '../models/likeModel.js';
 const geocoderOptions = {
     provider: 'openstreetmap'
 };
-const geocoder = NodeGeocoder(geocoderOptions);
 
 const seedUsers = async () => {
     const users = [
@@ -78,6 +77,13 @@ const seedRestaurants = async (userIds) => {
             phone_number: '+84123456789',
             open_time: '09:00',
             close_time: '22:00',
+            location: {
+                type: 'Point',
+                coordinates: [
+                    105.84701888248215,
+                    21.030209039234084
+                ]
+            },
         },
         {
             name: 'The Gourmet Corner Restaurant',
@@ -90,6 +96,13 @@ const seedRestaurants = async (userIds) => {
             phone_number: '+84987654321',
             open_time: '10:00',
             close_time: '22:00',
+            location: {
+                type: 'Point',
+                coordinates: [
+                    105.852058,
+                    21.0346357
+                ]
+            },
         },
         {
             name: 'Gia Ngư Restaurant',
@@ -102,28 +115,16 @@ const seedRestaurants = async (userIds) => {
             phone_number: '+84911223344',
             open_time: '12:00',
             close_time: '21:00',
+            location: {
+                type: 'Point',
+                coordinates: [
+                    105.8524553,
+                    21.033057
+                ]
+            },
         },
         // Add more restaurants...
     ];
-
-    // Calculate location coordinates for each restaurant
-    for (const restaurant of restaurants) {
-        const geoData = await geocoder.geocode(restaurant.address);
-        let latitude;
-        let longitude;
-        if (!geoData.length) {
-            console.log(`Invalid address provided: ${restaurant.address}`);
-            latitude = 21.028511;
-            longitude = 105.853662;
-        } else {
-            latitude = geoData[0].latitude;
-            longitude = geoData[0].longitude;
-        }
-        restaurant.location = {
-            type: 'Point',
-            coordinates: [longitude, latitude]
-        };
-    }
 
     const createdRestaurants = await Restaurant.insertMany(restaurants);
     return {
@@ -269,24 +270,12 @@ const seedDB = async () => {
         }
 
         const createdUserIds = await seedUsers();
-        console.log(`Created ${Object.keys(createdUserIds).length} users.`);
 
         const createdRestaurantIds = await seedRestaurants(createdUserIds);
-        console.log(`Created ${Object.keys(createdRestaurantIds).length} restaurants.`);
 
         const createdDisheIds = await seedDishes(createdRestaurantIds);
-        console.log(`Created ${Object.keys(createdDisheIds).length} dishes.`);
 
         const createdPostIds = await seedPosts(createdUserIds, createdRestaurantIds, createdDisheIds);
-
-        const feedbackCount = Object.keys(createdPostIds.feedbackIds).length;
-        console.log(`Created ${feedbackCount} feedback posts.`);
-
-        const dishFeedbackCount = Object.keys(createdPostIds.dishFeedbackIds).length;
-        console.log(`Created ${dishFeedbackCount} dish feedback posts.`);
-
-        const commentCount = Object.keys(createdPostIds.commentIds).length;
-        console.log(`Created ${commentCount} comment posts.`);
 
         // Aggregate Post IDs for Likes
         const postIds = {
@@ -296,7 +285,6 @@ const seedDB = async () => {
         };
 
         await seedLikes(createdUserIds, postIds);
-        console.log('Created likes.');
 
         console.log('Seed Data Complete!');
     } catch (err) {

@@ -1,13 +1,12 @@
-// src/routes/restaurantRoutes.js
-
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
-import authenticate from '../middlewares/authenticate.js'; // Import your authentication middleware
+import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
-  fetchAllRestaurants,
+  listRestaurants,
   fetchRestaurantById,
   createNewRestaurant,
   modifyRestaurant,
@@ -35,6 +34,7 @@ const router = Router();
  *         - phone_number
  *         - open_time
  *         - close_time
+ *         - location
  *       properties:
  *         _id:
  *           type: string
@@ -49,10 +49,15 @@ const router = Router();
  *           description: Array of media URLs
  *         admin_id:
  *           type: string
- *           description: ID of the admin user who manages the restaurant
+ *           description: Admin user ID who created the restaurant
  *         address:
  *           type: string
  *           description: Address of the restaurant
+ *         location:
+ *           type: array
+ *           items:
+ *             type: number
+ *           description: Geographic location of the restaurant [latitude, longitude]
  *         phone_number:
  *           type: string
  *           description: Contact phone number
@@ -67,6 +72,15 @@ const router = Router();
  *         close_time:
  *           type: string
  *           description: Closing time in HH:MM format (e.g., 21:00)
+ *         __v:
+ *           type: integer
+ *           description: Version key
+ *         averagePrice:
+ *           type: number
+ *           description: Average price of meals
+ *         distance:
+ *           type: number
+ *           description: Distance from a reference point
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -76,17 +90,27 @@ const router = Router();
  *           format: date-time
  *           description: The date and time the restaurant was last updated
  *       example:
- *         _id: 60d5ec49f9a1b14a3c8d4567
- *         name: "The Gourmet Kitchen"
- *         media: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
- *         admin_id: 60d5ec49f9a1b14a3c8d1234
- *         address: "123 Culinary Street, Foodville"
- *         phone_number: "+1234567890"
- *         avg_rating: 4.5
- *         open_time: 09:00
- *         close_time: 21:00
- *         createdAt: "2024-04-27T14:00:00.000Z"
- *         updatedAt: "2024-04-27T14:00:00.000Z"
+ *         _id: "674eed54edd49b6af0d2a0de"
+ *         name: "hàng quà Restaurant - Asian Fusion Food & Coffee"
+ *         media: [
+ *           "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/6d/7a/40/hang-qua-on-13-hang-bong.jpg?w=900&h=500&s=1",
+ *           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHxA3Pp1uvkAJQY8P6fsR5zzrFzyYJpVWyvQ&s"
+ *         ]
+ *         admin_id: "674eed50edd49b6af0d2a0d8"
+ *         address: "13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam"
+ *         location: [
+ *            105.84701888248215, 
+ *            21.030209039234084
+ *         ]
+ *         phone_number: "+84123456789"
+ *         avg_rating: 0
+ *         open_time: "09:00"
+ *         close_time: "22:00"
+ *         __v: 0
+ *         averagePrice: 1500
+ *         distance: 2.809
+ *         createdAt: "2024-12-03T11:36:52.823Z"
+ *         updatedAt: "2024-12-03T11:36:52.823Z"
  *
  *     RestaurantInput:
  *       type: object
@@ -94,11 +118,6 @@ const router = Router();
  *         name:
  *           type: string
  *           description: Name of the restaurant
- *         media:
- *           type: array
- *           items:
- *             type: string
- *           description: Array of media URLs
  *         address:
  *           type: string
  *           description: Address of the restaurant
@@ -111,13 +130,18 @@ const router = Router();
  *         close_time:
  *           type: string
  *           description: Closing time in HH:MM format (e.g., 21:00)
+ *       required:
+ *         - name
+ *         - address
+ *         - phone_number
+ *         - open_time
+ *         - close_time
  *       example:
  *         name: "The Gourmet Kitchen"
- *         media: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
  *         address: "123 Culinary Street, Foodville"
  *         phone_number: "+1234567890"
- *         open_time: 09:00
- *         close_time: 21:00
+ *         open_time: "09:00"
+ *         close_time: "21:00"
  */
 
 /**
@@ -149,6 +173,7 @@ const router = Router();
  *         schema:
  *           type: string
  *           enum: [name, address, open_time, close_time, createdAt]
+ *           default: createdAt
  *         description: Field to sort by
  *       - in: query
  *         name: sortOrder
@@ -157,7 +182,49 @@ const router = Router();
  *           enum: [asc, desc]
  *           default: asc
  *         description: Order of sorting
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Latitude for distance filtering
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Longitude for distance filtering
+ *       - in: query
+ *         name: distance
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Maximum distance in kilometers to filter restaurants
+ *       - in: query
+ *         name: minAvgPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *           minimum: 0
+ *         description: Minimum average price (VND) to filter restaurants
+ *       - in: query
+ *         name: maxAvgPrice
+ *         schema:
+ *           type: number
+ *           format: float
+ *           minimum: 0
+ *         description: Maximum average price (VND) to filter restaurants
+ *       - in: query
+ *         name: avgRating
+ *         schema:
+ *           type: number
+ *           format: float
+ *           minimum: 0
+ *           maximum: 5
+ *         description: Average rating to filter restaurants (0 to 5)
  *     responses:
+ *       400:
+ *         description: Bad request.
  *       200:
  *         description: A paginated list of restaurants.
  *         content:
@@ -182,7 +249,61 @@ const router = Router();
  *                   items:
  *                     $ref: '#/components/schemas/Restaurant'
  */
-router.get('/', fetchAllRestaurants);
+router.get(
+  '/',
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Limit must be a positive integer'),
+  query('search')
+    .optional()
+    .isString()
+    .withMessage('Search must be a string'),
+  query('sortBy')
+    .optional()
+    .isIn(['name', 'address', 'open_time', 'close_time', 'createdAt'])
+    .withMessage('Invalid sortBy field'),
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('SortOrder must be either asc or desc'),
+  query('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be a number between -90 and 90'),
+  query('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be a number between -180 and 180'),
+  query('distance')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Distance must be a positive number'),
+  query('minAvgPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('minAvgPrice must be a positive number'),
+  query('maxAvgPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('maxAvgPrice must be a positive number')
+    .custom((value, { req }) => {
+      if (req.query.minAvgPrice && parseFloat(value) < parseFloat(req.query.minAvgPrice)) {
+        throw new Error('maxAvgPrice must be greater than or equal to minAvgPrice');
+      }
+      return true;
+    }),
+  query('avgRating')
+    .optional()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('avgRating must be a number between 0 and 5'),
+  validate,
+  listRestaurants,
+);
 
 /**
  * @swagger
@@ -197,6 +318,18 @@ router.get('/', fetchAllRestaurants);
  *         description: The restaurant ID
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Latitude for distance calculation
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Longitude for distance calculation
  *     responses:
  *       200:
  *         description: The restaurant description by id.
@@ -211,10 +344,27 @@ router.get('/', fetchAllRestaurants);
  */
 router.get(
   '/:id',
-  param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
+  param('id')
+    .isMongoId()
+    .withMessage('ID must be a valid MongoDB ObjectId'),
+  query('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be a number between -90 and 90'),
+  query('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 }),
   validate,
   fetchRestaurantById
 );
+
+// Create an upload middleware for restaurants
+const uploadRestaurantMedia = createUploadMiddleware({
+  fieldName: 'media',
+  folder: 'restaurants',
+  multiple: true,
+  maxCount: 5
+});
 
 /**
  * @swagger
@@ -227,9 +377,44 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Phở Thìn Bờ Hồ"
+ *               address:
+ *                 type: string
+ *                 example: "13 Lò Đúc, Phạm Đình Hổ, Hai Bà Trưng, Hà Nội"
+ *               phone_number:
+ *                 type: string
+ *                 example: "+84-24-3821-2709"
+ *               open_time:
+ *                 type: string
+ *                 example: "06:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
+ *               close_time:
+ *                 type: string
+ *                 example: "21:30"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
+ *             required:
+ *               - name
+ *               - address
+ *               - phone_number
+ *               - open_time
+ *               - close_time
+ *               - media
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: The restaurant was successfully created.
@@ -250,6 +435,7 @@ router.post(
   '/',
   authenticate, // Ensure only authenticated users can create restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia,
   [
     body('name')
       .notEmpty()
@@ -276,12 +462,6 @@ router.post(
       .withMessage('Close time is required')
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   createNewRestaurant
@@ -302,12 +482,41 @@ router.post(
  *         description: The restaurant ID
  *         schema:
  *           type: string
+ *         example: "60d21b4667d0d8992e610c85"
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Bún Chả Hương Liên"
+ *               address:
+ *                 type: string
+ *                 example: "24 Lê Văn Hưu, Hai Bà Trưng, Hà Nội"
+ *               phone_number:
+ *                 type: string
+ *                 example: "+84-24-3943-4106"
+ *               open_time:
+ *                 type: string
+ *                 example: "07:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
+ *               close_time:
+ *                 type: string
+ *                 example: "22:00"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
+ *             encoding:
+ *               media:
+ *                 style: form
+ *                 explode: true
  *     responses:
  *       200:
  *         description: The restaurant was updated successfully.
@@ -330,8 +539,11 @@ router.put(
   '/:id',
   authenticate, // Ensure only authenticated users can modify restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia, // Handle file uploads for media
   [
-    param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
+    param('id')
+      .isMongoId()
+      .withMessage('ID must be a valid MongoDB ObjectId'),
     body('name')
       .optional()
       .isLength({ max: 100 })
@@ -345,21 +557,13 @@ router.put(
       .matches(/^\+?[1-9]\d{1,14}$/)
       .withMessage('Please provide a valid phone number in E.164 format'),
     body('open_time')
-      .notEmpty()
-      .withMessage('Open time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('open_time must be in HH:mm format (e.g., 09:00).'),
     body('close_time')
-      .notEmpty()
-      .withMessage('Close time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   modifyRestaurant
