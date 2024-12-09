@@ -1,9 +1,13 @@
 import React, { use, useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import restaurantData from '../restaurant/restaurantData';
 import './UpLoadPost.css';
 import { createPost } from '../../api/post';
+import { useNavigate } from 'react-router-dom';
 
 const UpLoadPostPage = () => {
+  const isLoggedIn = useSelector((state) => state.user.value); // Access login status from Redux store
+  if (isLoggedIn == false) navigate('/signin');
   const [restaurantSearch, setRestaurant] = useState('');
   const [dishSearch, setDishSearch] = useState('');
   const [baseDish, setBaseDish] = useState([]);
@@ -48,6 +52,7 @@ const UpLoadPostPage = () => {
 
   return (
     <div id="formBlock">
+      <div></div>
       <form>
         <div className="formInput">
           <h2 className="formInput">レストラン名</h2>
