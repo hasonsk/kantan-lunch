@@ -110,7 +110,7 @@ const uploadPostMedia = createUploadMiddleware({
  * @swagger
  * /posts:
  *   post:
- *     summary: Tạo một bài đăng mới
+ *     summary: Create a new post
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
