@@ -120,8 +120,6 @@ const uploadPostMedia = createUploadMiddleware('posts').array('media', 5);
  *                 type: string
  *                 enum: [Feedback, DishFeedback, Comment]
  *                 description: The type of the post.
- *               caption:
- *                 type: string
  *               content:
  *                 type: string
  *               media:
@@ -167,11 +165,6 @@ router.post(
             .withMessage('type is required')
             .isIn(['Feedback', 'DishFeedback', 'Comment'])
             .withMessage('type must be Feedback, DishFeedback, or Comment'),
-        body('caption')
-            .notEmpty()
-            .withMessage('caption is required')
-            .isLength({ max: 500 })
-            .withMessage('caption cannot exceed 500 characters'),
         body('content')
             .notEmpty()
             .withMessage('content is required for Post'),
@@ -449,6 +442,8 @@ router.delete(
  *                     $ref: '#/components/schemas/Post'
  *       400:
  *         description: Bad request.
+ *       403:
+ *         description: Forbidden: Only admins can view unreviewed posts.
  */
 router.get(
     '/',

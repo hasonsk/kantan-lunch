@@ -16,7 +16,6 @@ const createPost = async (req, res, next) => {
 
         const {
             type,
-            caption,
             content,
             restaurant_id,
             rating,
@@ -76,7 +75,6 @@ const createPost = async (req, res, next) => {
         // Tạo Post mới
         const newPost = new Post({
             type,
-            caption,
             content,
             media,
             user_id,
