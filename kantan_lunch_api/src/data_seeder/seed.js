@@ -71,8 +71,8 @@ const seedRestaurants = async (userIds) => {
             name: 'hàng quà Restaurant - Asian Fusion Food & Coffee',
             address: '13, Hàng Bông, Hàng Trống, Hoàn Kiếm, Hà Nội, Vietnam',
             media: [
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548028/hang-qua-on-13-hang-bong_fhairn.jpg',
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548063/images_msrhwg.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733536704/kantan_lunch/restaurants/kqfz2t3i9jauumz442kd.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548028/hang-qua-on-13-hang-bong_fhairn.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84123456789',
@@ -83,8 +83,8 @@ const seedRestaurants = async (userIds) => {
             name: 'The Gourmet Corner Restaurant',
             address: '22, Ta Hien, Hoan Kiem, Hanoi, Vietnam',
             media: [
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548100/restaurant_n2rebq.jpg',
-                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548126/The_2520Gourmet_2520Corner_2520Restaurant_2520Hanoi_2520-4e5661d4-23c1-44c3-a129-ca7e40d8a28f_s8zkfl.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548063/images_msrhwg.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548100/restaurant_n2rebq.jpg'
             ],
             admin_id: userIds.admin,
             phone_number: '+84987654321',
@@ -139,8 +139,8 @@ const seedDishes = async (restaurantIds) => {
         {
             name: '寿司盛り合わせ',
             media: [
-                'https://example.com/sushi1.jpg',
-                'https://example.com/sushi2.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741565/sushi-1_muqgmf.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741565/sushi-2_og0qoh.jpg'
             ],
             price: 1500,
             restaurant_id: restaurantIds.restaurant1,
@@ -148,8 +148,8 @@ const seedDishes = async (restaurantIds) => {
         {
             name: 'ラーメン特選',
             media: [
-                'https://example.com/ramen1.jpg',
-                'https://example.com/ramen2.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741639/ramen-1_rlo9nu.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741640/ramen-2_tspua4.jpg'
             ],
             price: 1200,
             restaurant_id: restaurantIds.restaurant2,
@@ -157,8 +157,8 @@ const seedDishes = async (restaurantIds) => {
         {
             name: '天ぷらセット',
             media: [
-                'https://example.com/tempura1.jpg',
-                'https://example.com/tempura2.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741737/tempura-1_p21rhx.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733741736/tempura-2_y9bpzo.jpg'
             ],
             price: 1800,
             restaurant_id: restaurantIds.restaurant3,
@@ -179,8 +179,8 @@ const seedFeedback = async (userIds, restaurantIds) => {
         {
             type: 'Feedback',
             media: [
-                'https://netspace.edu.vn/upload/images/2017/04/07/cach-lam-bun-1.jpg',
-                'https://thucphamdongxanh.com/wp-content/uploads/2019/09/bun-tuoi-soi-to-bun-bo.jpeg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548219/cach-lam-bun-1_sudxnc.jpg',
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548228/bun-tuoi-soi-to-bun-bo_ksgm6z.jpg'
             ],
             content: 'このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。',
             user_id: userIds.user1,
@@ -201,8 +201,7 @@ const seedDishFeedback = async (userIds, dishIds) => {
         {
             type: 'DishFeedback',
             media: [
-                'https://example.com/sushi_feedback1.jpg',
-                'https://example.com/sushi_feedback2.jpg'
+                'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733548332/0yrg1d2m8q091_uz5klb.jpg',
             ],
             content: '最高の寿司を楽しみました！新鮮で美味しかったです。',
             user_id: userIds.user2,

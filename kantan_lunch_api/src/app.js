@@ -11,6 +11,7 @@ import restaurantRoutes from './routes/restaurantRoutes.js';
 import userRoutes from './routes/userRoutes.js'
 import postRoutes from './routes/postRoutes.js'
 import likeRoutes from './routes/likeRoutes.js';
+import dishRoutes from './routes/dishRoutes.js';
 
 // Swagger setup
 import swaggerUi from 'swagger-ui-express';
@@ -41,6 +42,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/likes', likeRoutes);
+app.use('/api/dishes', dishRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

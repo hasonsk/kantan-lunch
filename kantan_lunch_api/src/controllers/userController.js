@@ -35,8 +35,7 @@ const registerUser = async (req, res, next) => {
             phone_number
         } = req.body;
 
-        // Extract uploaded avatar file
-        const file = req.file;
+        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -50,7 +49,7 @@ const registerUser = async (req, res, next) => {
             last_name,
             date_of_birth,
             phone_number,
-            avatar: file ? file.path : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
+            avatar: avatar ? avatar : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
         };
 
         // Create new user
@@ -145,7 +144,7 @@ const getUserProfile = async (req, res, next) => {
 const updateUserProfile = async (req, res, next) => {
     try {
         const { first_name, last_name, date_of_birth, phone_number } = req.body;
-        const file = req.file;
+        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Build the profile update object dynamically
         const profileUpdates = {};
@@ -153,7 +152,7 @@ const updateUserProfile = async (req, res, next) => {
         if (last_name !== undefined) profileUpdates['profile.last_name'] = last_name;
         if (date_of_birth !== undefined) profileUpdates['profile.date_of_birth'] = date_of_birth;
         if (phone_number !== undefined) profileUpdates['profile.phone_number'] = phone_number;
-        if (file) profileUpdates['profile.avatar'] = file.path;
+        if (avatar) profileUpdates['profile.avatar'] = avatar;
 
         // Update user profile
         const updatedUser = await User.findByIdAndUpdate(
@@ -208,8 +207,7 @@ const registerAdmin = async (req, res, next) => {
             phone_number 
         } = req.body;
 
-        // Extract uploaded avatar file
-        const file = req.file;
+        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -223,7 +221,7 @@ const registerAdmin = async (req, res, next) => {
             last_name,
             date_of_birth,
             phone_number,
-            avatar: file ? file.path : DEFAULT_AVT_ADMIN, // Cloudinary URL for the uploaded avatar, or default avatar
+            avatar: avatar ? avatar : DEFAULT_AVT_ADMIN, // Cloudinary URL for the uploaded avatar, or default avatar
         };
 
         // Create new admin user
