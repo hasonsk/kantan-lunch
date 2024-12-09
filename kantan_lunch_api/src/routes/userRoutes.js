@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js';
-import authorizeRoles from '../middlewares/authorizeRoles.js'; 
-import createUploadMiddleware  from '../middlewares/upload.js';
+import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
     registerUser,
@@ -187,7 +187,11 @@ const router = Router();
  */
 
 // Create an upload middleware for user avatars
-const uploadAvatar = createUploadMiddleware('avatars').single('avatar');
+const uploadAvatar = createUploadMiddleware({
+    fieldName: 'avatar',
+    folder: 'avatars',
+    multiple: false,
+});
 
 /**
  * @swagger
