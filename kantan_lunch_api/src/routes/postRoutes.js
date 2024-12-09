@@ -110,7 +110,7 @@ const uploadPostMedia = createUploadMiddleware({
  * @swagger
  * /posts:
  *   post:
- *     summary: Create a new post
+ *     summary: Tạo một bài đăng mới
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -125,8 +125,11 @@ const uploadPostMedia = createUploadMiddleware({
  *                 type: string
  *                 enum: [Feedback, DishFeedback, Comment]
  *                 description: The type of the post.
+ *                 example: "Feedback"
  *               content:
  *                 type: string
+ *                 description: The content of the post.
+ *                 example: "Món ăn ngon tuyệt vời, phục vụ nhanh chóng!"
  *               media:
  *                 type: array
  *                 items:
@@ -134,12 +137,22 @@ const uploadPostMedia = createUploadMiddleware({
  *                   format: binary
  *               restaurant_id:
  *                 type: string
+ *                 description: The ID of the related restaurant (for Feedback).
+ *                 example: "60d21b4667d0d8992e610c85"
  *               rating:
  *                 type: number
+ *                 example: 5
+ *                 description: Rating given (for Feedback and DishFeedback).
  *               dish_id:
  *                 type: string
+ *                 description: The ID of the related dish (for DishFeedback).
  *               post_id:
  *                 type: string
+ *                 description: The ID of the parent Post (for Comment).
+ *             required:
+ *               - type
+ *               - content
+ *               - media
  *           encoding:
  *             media:
  *               style: form

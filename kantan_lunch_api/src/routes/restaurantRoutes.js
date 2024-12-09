@@ -383,25 +383,34 @@ const uploadRestaurantMedia = createUploadMiddleware({
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Phở Thìn Bờ Hồ"
  *               address:
  *                 type: string
+ *                 example: "13 Lò Đúc, Phạm Đình Hổ, Hai Bà Trưng, Hà Nội"
  *               phone_number:
  *                 type: string
+ *                 example: "+84-24-3821-2709"
  *               open_time:
  *                 type: string
+ *                 example: "06:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
  *               close_time:
  *                 type: string
+ *                 example: "21:30"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
  *               media:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
  *             required:
  *               - name
  *               - address
  *               - phone_number
  *               - open_time
  *               - close_time
+ *               - media
  *           encoding:
  *             media:
  *               style: form
@@ -473,6 +482,7 @@ router.post(
  *         description: The restaurant ID
  *         schema:
  *           type: string
+ *         example: "60d21b4667d0d8992e610c85"
  *     requestBody:
  *       required: true
  *       content:
@@ -482,19 +492,27 @@ router.post(
  *             properties:
  *               name:
  *                 type: string
+ *                 example: "Bún Chả Hương Liên"
  *               address:
  *                 type: string
+ *                 example: "24 Lê Văn Hưu, Hai Bà Trưng, Hà Nội"
  *               phone_number:
  *                 type: string
+ *                 example: "+84-24-3943-4106"
  *               open_time:
  *                 type: string
+ *                 example: "07:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
  *               close_time:
  *                 type: string
+ *                 example: "22:00"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
  *               media:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
  *             encoding:
  *               media:
  *                 style: form
