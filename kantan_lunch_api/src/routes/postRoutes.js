@@ -3,7 +3,7 @@ import { body, param, query } from 'express-validator';
 import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
 import validate from '../middlewares/validate.js';
-import createUploadMiddleware  from '../middlewares/upload.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
     createPost,
@@ -99,7 +99,12 @@ const router = Router();
  */
 
 // Create an upload middleware for posts
-const uploadPostMedia = createUploadMiddleware('posts').array('media', 5);
+const uploadPostMedia = createUploadMiddleware({
+    fieldName: 'media',
+    folder: 'posts',
+    multiple: true,
+    maxCount: 5,
+})
 
 /**
  * @swagger
@@ -120,8 +125,6 @@ const uploadPostMedia = createUploadMiddleware('posts').array('media', 5);
  *                 type: string
  *                 enum: [Feedback, DishFeedback, Comment]
  *                 description: The type of the post.
- *               caption:
- *                 type: string
  *               content:
  *                 type: string
  *               media:
@@ -167,11 +170,6 @@ router.post(
             .withMessage('type is required')
             .isIn(['Feedback', 'DishFeedback', 'Comment'])
             .withMessage('type must be Feedback, DishFeedback, or Comment'),
-        body('caption')
-            .notEmpty()
-            .withMessage('caption is required')
-            .isLength({ max: 500 })
-            .withMessage('caption cannot exceed 500 characters'),
         body('content')
             .notEmpty()
             .withMessage('content is required for Post'),
@@ -449,6 +447,8 @@ router.delete(
  *                     $ref: '#/components/schemas/Post'
  *       400:
  *         description: Bad request.
+ *       403:
+ *         description: Forbidden Only admins can view unreviewed posts.
  */
 router.get(
     '/',

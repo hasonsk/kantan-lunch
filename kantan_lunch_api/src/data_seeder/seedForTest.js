@@ -180,7 +180,6 @@ const seedFeedback = async (userIds, restaurantIds) => {
     const feedbacks = [
         {
             type: 'Feedback',
-            caption: 'Excellent service!',
             media: [
                 'https://netspace.edu.vn/upload/images/2017/04/07/cach-lam-bun-1.jpg',
                 'https://thucphamdongxanh.com/wp-content/uploads/2019/09/bun-tuoi-soi-to-bun-bo.jpeg'
@@ -203,7 +202,6 @@ const seedDishFeedback = async (userIds, dishIds) => {
     const dishFeedbacks = [
         {
             type: 'DishFeedback',
-            caption: 'Amazing Sushi!',
             media: [
                 'https://example.com/sushi_feedback1.jpg',
                 'https://example.com/sushi_feedback2.jpg'
@@ -226,7 +224,6 @@ const seedComments = async (userIds, postIds) => {
     const comments = [
         {
             type: 'Comment',
-            caption: 'I agree!',
             media: [],
             content: '本当に素晴らしいサービスですね。',
             user_id: userIds.user2,
