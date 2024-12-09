@@ -1,36 +1,57 @@
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import cloudinary from '../config/cloudinaryConfig.js';
+import crypto from 'crypto';
+import FileHash from '../models/fileHashModel.js';
 
-/**
- * Factory function to create a Multer middleware with Cloudinary storage.
- * @param {string} folder - The Cloudinary folder where files will be uploaded.
- * @returns {multer.Multer} - Configured Multer middleware.
- */
-const createUploadMiddleware = (folder) => {
-  // Configure Cloudinary Storage with dynamic folder
-  const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: `kantan_lunch/${folder}`, // Dynamic folder based on parameter
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif'], // Include other formats if needed
-      transformation: [{ width: 800, height: 600, crop: 'limit' }], // Optional: image transformations
-    },
-  });
-
-  // Initialize Multer with Cloudinary Storage
-  return multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
+const createUploadMiddleware = ({ field = 'media', folder = 'uploads', multiple = false, maxFiles = 5 } = {}) => {
+  // Use memory storage first to access file buffer
+  const memStorage = multer.memoryStorage();
+  const upload = multer({
+    storage: memStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-      if (allowedMimeTypes.includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        cb(new Error('Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.'));
-      }
-    },
+      const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+      cb(null, allowed.includes(file.mimetype));
+    }
   });
+
+  // Upload to Cloudinary using file buffer
+  const uploadToCloudinary = async (req, res, next) => {
+    try {
+      const files = req[multiple ? 'files' : 'file'];
+      if (!files) return next();
+
+      const fileList = Array.isArray(files) ? files : [files];
+      const mediaUrls = await Promise.all(fileList.map(async file => {
+        const hash = crypto
+          .createHash('md5')
+          .update(file.buffer)
+          .digest('hex');
+
+        const existing = await FileHash.findOne({ hash });
+        if (existing) return existing.url;
+
+        const result = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          { folder: `kantan_lunch/${folder}` }
+        );
+
+        await FileHash.create({ hash, url: result.secure_url });
+        return result.secure_url;
+      }));
+
+      req.mediaUrls = mediaUrls;
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  return [
+    upload[multiple ? 'array' : 'single'](field, maxFiles),
+    uploadToCloudinary
+  ];
 };
 
 export default createUploadMiddleware;

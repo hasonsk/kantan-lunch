@@ -3,7 +3,7 @@ import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
-import createUploadMiddleware  from '../middlewares/upload.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
   listRestaurants,
@@ -359,7 +359,12 @@ router.get(
 );
 
 // Create an upload middleware for restaurants
-const uploadRestaurantMedia = createUploadMiddleware('restaurants').array('media', 5);
+const uploadRestaurantMedia = createUploadMiddleware({
+  fieldName: 'media',
+  folder: 'restaurants',
+  multiple: true,
+  maxCount: 5
+});
 
 /**
  * @swagger
@@ -421,7 +426,7 @@ router.post(
   '/',
   authenticate, // Ensure only authenticated users can create restaurants
   authorizeRoles('admin'), // Only admins can access this route
-  uploadRestaurantMedia, // Use the dynamic upload middleware
+  uploadRestaurantMedia,
   [
     body('name')
       .notEmpty()
