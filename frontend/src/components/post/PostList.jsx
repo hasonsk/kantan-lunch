@@ -16,16 +16,22 @@ const PostList = ({ posts }) => {
     <div className="post-list-container">
       <div className="post-header">
         <h2>レビュー</h2>
-        <button onClick={() => navigate(`/restaurants/${posts[0]?._id}/write-post`)} className="write-post-btn">貢献したいですか？</button>
+        <button type="button" className="btn btn-primary btn-rounded" data-mdb-ripple-init onClick={() => navigate(`/restaurants/${posts[0]?._id}/write-post`)}>貢献したいですか？</button>
       </div>
       <ul className="post-list">
-        {currentPosts.map((post) => <PostCard key={post._id} post={post} />)}
+        {totalPages === 0 ? (
+          <li>まだ投稿がありません。</li> // Message when there are no posts
+        ) : (
+          currentPosts.map((post) => <PostCard key={post._id} post={post} />)
+        )}
       </ul>
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>
-        <span>{currentPage} / {totalPages}</span>
-        <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}> &rarr;</button>
-      </div>
+      {totalPages > 0 && ( // Only show pagination if there are posts
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>
+          <span>{currentPage} / {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}> &rarr;</button>
+        </div>
+      )}
     </div>
   );
 };

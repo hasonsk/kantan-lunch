@@ -36,7 +36,7 @@
 }
 
 .restaurant-name {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: bold;
   color: var(--text-light-color);
   text-align: left;
@@ -259,4 +259,22 @@
 .pagination span {
   font-size: 16px;
   font-weight: bold;
+}
+
+.restaurant-name-loved {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.heart {
+  margin: 10px;
+  cursor: pointer;
+  color: black;
+  transition: color 0.3s;
+}
+
+.heart.red {
+  color: red; /* Màu khi được chọn */
 }

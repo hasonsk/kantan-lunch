@@ -8,6 +8,13 @@ const api = axios.create({
   },
 });
 
+const formDataAPI = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'multipart/form-data',
+  },
+});
+
 // Lấy danh sách tất cả post
 export const getAllPosts = async () => {
   const response = await api.get('/posts');
@@ -22,7 +29,7 @@ export const getPostById = async (id) => {
 
 // Tạo mới một post
 export const createPost = async (data) => {
-  const response = await api.post('/posts', data);
+  const response = await formDataAPI.post('/posts', data);
   return response.data;
 };
 
