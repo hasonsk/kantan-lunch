@@ -24,9 +24,9 @@ const AdminHeader = () => {
 
             {/* Thêm nav bên dưới header */}
             <nav className="sub-nav">
-                <a href="/user" className="sub-nav-link active">レビュー管理</a>
-                <a href="/review" className="sub-nav-link">コンテンツ管理ページ</a>
-                <a href="/menu" className="sub-nav-link">食品およびレストラン</a>
+                <a href="/admin/user" className="sub-nav-link active">レビュー管理</a>
+                <a href="/admin/review" className="sub-nav-link">コンテンツ管理ページ</a>
+                <a href="/admin/menu" className="sub-nav-link">食品およびレストラン</a>
             </nav>
         </div>
     );
