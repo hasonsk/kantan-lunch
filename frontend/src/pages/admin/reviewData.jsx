@@ -1,4 +1,4 @@
-const reviewData = [
+const postData = [
     {
         id: 1,
         user: "サニー・ビストロ",
@@ -19,4 +19,4 @@ const reviewData = [
     }
 ];
 
-export default reviewData;
+export default postData;
