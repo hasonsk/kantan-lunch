@@ -3,7 +3,7 @@ import { body, param, query } from 'express-validator';
 import authenticate from '../middlewares/authenticate.js';
 import authorizeRoles from '../middlewares/authorizeRoles.js';
 import validate from '../middlewares/validate.js';
-import createUploadMiddleware  from '../middlewares/upload.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
     createPost,
@@ -99,7 +99,12 @@ const router = Router();
  */
 
 // Create an upload middleware for posts
-const uploadPostMedia = createUploadMiddleware('posts').array('media', 5);
+const uploadPostMedia = createUploadMiddleware({
+    fieldName: 'media',
+    folder: 'posts',
+    multiple: true,
+    maxCount: 5,
+})
 
 /**
  * @swagger
@@ -443,7 +448,7 @@ router.delete(
  *       400:
  *         description: Bad request.
  *       403:
- *         description: Forbidden: Only admins can view unreviewed posts.
+ *         description: Forbidden Only admins can view unreviewed posts.
  */
 router.get(
     '/',
