@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
 import {Navigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'; // Đảm bảo import file CSS tổng quát
@@ -18,12 +18,12 @@ import ReviewManagement from './pages/admin/ReviewManagement';
 
 function App() {
     const isLoggedIn = useSelector((state) => state.user.value);
-    let location = useLocation();
     return (
         <Router>
             <div>
                 {/* Header luôn xuất hiện trừ khi login/signup*/}
-                {location.pathname !== '/login' && location.pathname !== '/signup' && (
+                {location.pathname !== '/login' && location.pathname !== '/signup'
+                    && !location.pathname.startsWith('/admin')  && (
                     <Header/>
                 )}
                 {location.pathname.startsWith("/admin") && (
