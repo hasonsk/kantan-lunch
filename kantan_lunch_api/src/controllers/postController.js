@@ -135,7 +135,6 @@ const updatePost = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { caption, content, rating } = req.body;
-        const files = req.files;
 
         // Check if the user is banned
         if (req.user.banned) {
@@ -159,11 +158,7 @@ const updatePost = async (req, res, next) => {
         if (content !== undefined) updateFields.content = content;
         if (rating !== undefined) updateFields.rating = rating;
 
-        // Handle media uploads
-        if (files && files.length > 0) {
-            const mediaPaths = files.map(file => file.path);
-            updateFields.media = mediaPaths;
-        }
+        const media = req.mediaUrls || [];
 
         // Update the post
         const updatedPost = await Post.findByIdAndUpdate(

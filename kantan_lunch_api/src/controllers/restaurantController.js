@@ -249,9 +249,6 @@ const createNewRestaurant = async (req, res, next) => {
             close_time,
         } = req.body;
 
-        // Extract uploaded files
-        const files = req.files;
-
         // Validate required fields
         if (!name || !address || !phone_number || open_time === undefined || close_time === undefined) {
             return res.status(400).json({ message: 'Missing required fields.' });
@@ -264,11 +261,7 @@ const createNewRestaurant = async (req, res, next) => {
             return res.status(400).json({ message: 'open_time and close_time must be in HH:mm format (e.g., 09:00).' });
         }
 
-        // Extract media URLs from uploaded files
-        let media = [];
-        if (files && files.length > 0) {
-            media = files.map(file => file.path); // Cloudinary URL
-        }
+        const media = req.mediaUrls || [];
 
         // Geocode the address to get latitude and longitude
         const { latitude, longitude } = await geocodeAddress(address);
@@ -319,7 +312,6 @@ const modifyRestaurant = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name, address, phone_number, open_time, close_time } = req.body;
-        const files = req.files;
 
         // Fetch the restaurant to verify existence
         const restaurant = await Restaurant.findById(id);
@@ -369,11 +361,9 @@ const modifyRestaurant = async (req, res, next) => {
             updateFields.close_time = close_time;
         }
 
-        // Handle media uploads
-        if (files && files.length > 0) {
-            // Extract file paths from uploaded files
-            const mediaPaths = files.map(file => file.path); // Replace backslashes with forward slashes for consistency
-            updateFields.media = mediaPaths;
+        const media = req.mediaUrls || [];
+        if (media.length > 0) {
+            updateFields.media = media;
         }
 
         // Update the restaurant
