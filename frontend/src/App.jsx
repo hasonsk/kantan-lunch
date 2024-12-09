@@ -15,7 +15,7 @@ function App() {
         <Router>
             <div>
                 {/* Header luôn xuất hiện */}
-                {isAdminRoute ? <AdminHeader /> : <Header />}
+                {isAdminRoute ? <AdminHeader/> : <Header/>}
                 <main>
                     {/* Các route chính */}
                     <Routes>
@@ -25,12 +25,12 @@ function App() {
 
                         <Route path="/admin" element={<h1>Admin Page</h1>}/>
                         <Route path="/admin/user" element={<h1>User Management</h1>}/>
-                        <Route path="/admin/review" element={<ReviewManagement>}/>
+                        <Route path="/admin/review" element={<ReviewManagement/>}/>
                         <Route path="/admin/menu" element={<h1>Menu Management</h1>}/>
                     </Routes>
                 </main>
                 {/* Footer luôn xuất hiện */}
-                {isAdminRoute ? "" : <Footer />}
+                {isAdminRoute ? "" : <Footer/>}
             </div>
         </Router>
     );
