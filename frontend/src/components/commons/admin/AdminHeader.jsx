@@ -1,5 +1,5 @@
 import React from 'react';
-import '../Header.css';
+import './AdminHeader.css';
 
 const AdminHeader = () => {
     return (
