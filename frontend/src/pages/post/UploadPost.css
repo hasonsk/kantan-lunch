@@ -1,0 +1,51 @@
+.fa-solid {
+  color: gold;
+}
+textarea {
+  resize: none;
+  width: 100%;
+}
+
+input {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px 20px;
+  text-align: left;
+  display: block;
+  margin-right: 10px;
+}
+
+.formInput {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px 20px;
+  width: inherit;
+  text-align: left;
+  display: block;
+}
+
+#formBlock {
+  width: 50%;
+  padding: 0px 32px;
+}
+
+#submitButton {
+  width: 100%;
+  padding: 5px;
+  margin: 0px 20px;
+  text-align: center;
+}
+
+.image-upload > input {
+  display: none;
+}
+.attach-doc {
+  cursor: pointer;
+  color: black;
+}
+
+.picture {
+  height: 200px;
+  margin: 5px;
+}

@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import restaurantData from "./restaurantData";
 import DishList from "../../components/dishes/DishList";
 import PostList from "../../components/post/PostList";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import "./RestaurantDetail.css";
 import { getRestaurantById } from "../../api/restaurant";
 import { getAllPosts } from "../../api/post";
@@ -10,6 +12,7 @@ import { getAllPosts } from "../../api/post";
 const RestaurantDetails = ({ }) => {
   const [restaurant, setRestaurant] = useState([]);
   const [postAll, setpostAll] = useState([]);
+  const [isLoved, setIsLoved] = useState(false);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,6 +38,10 @@ const RestaurantDetails = ({ }) => {
   useEffect(() => {
     fetchRestaurant();
   }, []);
+
+  const toggleHeart = () => {
+    setIsLoved(!isLoved);
+  };
 
   const fetchPosts = async () => {
     try {
@@ -101,7 +108,15 @@ const RestaurantDetails = ({ }) => {
   return (
     <div className="restaurant-detail">
       <div className="restaurant-detail-info">
-        <h1 className="restaurant-name">{name}</h1>
+        {/* <h1 className="restaurant-name">{name}</h1> */}
+        <div className="restaurant-name-loved">
+            <h1 className="restaurant-name">{name}</h1>
+            <FontAwesomeIcon
+                icon={faHeart}
+                className={`heart ${isLoved ? 'red' : ''}`}
+                onClick={toggleHeart}
+            />
+        </div>
         <div className="info">
           <div className="rating">
             <i className="fas fa-star"></i>{" "}
