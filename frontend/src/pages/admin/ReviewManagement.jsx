@@ -2,7 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import './ReviewManagement.css';
 import postData from "./reviewData.jsx"
+// import AdminSearchbar from "../../components/commons/admin/AdminSearchbar.jsx";
 import {getAllPosts} from '../../api/post';
+import AdminSearchbar from "../../components/commons/admin/AdminSearchbar.jsx";
 
 const ReviewManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -56,21 +58,11 @@ const ReviewManagement = () => {
 
     return (
         <div className="post-list">
-            <div className="search-bar">
-                <p className="greeting-text">レビュー</p>
-                <div className="input-container">
-                    <span className="search-icon">
-                        <i className="fa fa-search"></i>
-                    </span>
-                    <input
-                        type="text"
-                        placeholder="検索"
-                        className="search-input"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </div>
+            <AdminSearchbar
+                section="レビュー"
+                callback={setSearchQuery}
+                searchQuery=""
+            />
 
             {/*<div className="main-content">*/}
             {/*    {postData.length > 0 ? (*/}
