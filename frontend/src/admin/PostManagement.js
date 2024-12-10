@@ -8,4 +8,4 @@ const PostManagement = () => {
     );
 };
 
-export default HomePage;
+export default PostManagement;
