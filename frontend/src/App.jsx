@@ -23,9 +23,9 @@ function App() {
             <div>
                 {/* Header luôn xuất hiện trừ khi login/signup*/}
                 {location.pathname !== '/login' && location.pathname !== '/signup'
-                    && !location.pathname.startsWith('/admin')  && (
-                    <Header/>
-                )}
+                    && !location.pathname.startsWith('/admin') && (
+                        <Header/>
+                    )}
                 {location.pathname.startsWith("/admin") && (
                     <AdminHeader/>
                 )}
@@ -54,9 +54,10 @@ function App() {
                     </Routes>
                 </main>
                 {/* Footer luôn xuất hiện trừ khi login/signup */}
-                {location.pathname !== '/login' && location.pathname !== '/signup' && (
-                    <Footer/>
-                )}
+                {location.pathname !== '/login' && location.pathname !== '/signup'
+                    && !location.pathname.startsWith('/admin') && (
+                        <Footer/>
+                    )}
             </div>
         </Router>
     );
