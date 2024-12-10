@@ -8,6 +8,21 @@ const api = axios.create({
   },
 });
 
+export const getRestaurants = async (queryParams = {}) => {
+  try {
+    const query = new URLSearchParams(queryParams).toString;
+    const response = await api.get(`/restaurants?${query}`);
+    console.log('responded');
+
+    return response;
+  } catch (e) {
+    console.log('Error in apis');
+    console.log(e);
+
+    throw e;
+  }
+};
+
 // Lấy danh sách tất cả nhà hàng
 export const getAllRestaurants = async () => {
   const response = await api.get('/restaurants');
