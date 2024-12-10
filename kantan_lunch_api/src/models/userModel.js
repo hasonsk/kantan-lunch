@@ -5,12 +5,7 @@ const { Schema } = mongoose;
 
 // Define the Profile Subschema
 const profileSchema = new Schema({
-  first_name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  last_name: {
+  full_name: {
     type: String,
     required: true,
     trim: true,
