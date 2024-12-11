@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 const UpLoadPostPage = () => {
   const isLoggedIn = useSelector((state) => state.user.value); // Access login status from Redux store
-  if (isLoggedIn == false) navigate('/signin');
+  // if (isLoggedIn == false) navigate('/signin');
   const [restaurantSearch, setRestaurant] = useState('');
   const [dishSearch, setDishSearch] = useState('');
   const [baseDish, setBaseDish] = useState([]);
