@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PostCard from "./PostCard";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PostCard from './PostCard';
 
 const PostList = ({ posts }) => {
   const postsPerPage = 3;
@@ -8,7 +8,10 @@ const PostList = ({ posts }) => {
   const navigate = useNavigate();
 
   const totalPages = Math.ceil(posts.length / postsPerPage);
-  const currentPosts = posts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage);
+  const currentPosts = posts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage
+  );
 
   const changePage = (newPage) => setCurrentPage(newPage);
 
@@ -16,7 +19,18 @@ const PostList = ({ posts }) => {
     <div className="post-list-container">
       <div className="post-header">
         <h2>レビュー</h2>
-        <button type="button" className="btn btn-primary btn-rounded" data-mdb-ripple-init onClick={() => navigate(`/restaurants/${posts[0]?._id}/write-post`)}>貢献したいですか？</button>
+        <button
+          type="button"
+          className="btn btn-primary btn-rounded"
+          data-mdb-ripple-init
+          onClick={() =>
+            navigate(`/restaurants/write-post`, {
+              state: { restaurantId: posts[0]?._id },
+            })
+          }
+        >
+          貢献したいですか？
+        </button>
       </div>
       <ul className="post-list">
         {totalPages === 0 ? (
@@ -27,9 +41,22 @@ const PostList = ({ posts }) => {
       </ul>
       {totalPages > 0 && ( // Only show pagination if there are posts
         <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>&larr;</button>
-          <span>{currentPage} / {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}> &rarr;</button>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => changePage(currentPage - 1)}
+          >
+            &larr;
+          </button>
+          <span>
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => changePage(currentPage + 1)}
+          >
+            {' '}
+            &rarr;
+          </button>
         </div>
       )}
     </div>
