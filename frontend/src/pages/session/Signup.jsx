@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import { register } from '../../api/user';
 
 function Signup() {
   const [username, setUsername] = useState("");
@@ -52,23 +53,14 @@ function Signup() {
     }
 
     try {
-      const response = await fetch("https://your-api-endpoint.com/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password, role }),
-      });
+      const body = {
+        username,
+        email,
+        password,
+        full_name: username,
+      };
+      const data = await register(body);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setSignUpErrors({
-          apiError: errorData.message || "サインアップに失敗しました",
-        });
-        return;
-      }
-
-      const data = await response.json();
       console.log("サインアップ成功:", data);
 
       navigate("/login");

@@ -234,8 +234,8 @@ const UpLoadPostPage = () => {
         <div className="formInput">
           <h4 className="formInput">Upload file(s)</h4>
           <div className="formInput image-upload">
-            <label for="fileInput">
-              <i class="attach-doc fa-solid fa-upload"></i>
+            <label htmlFor="fileInput">
+              <i className="attach-doc fa-solid fa-upload"></i>
             </label>
             <input
               type="file"
@@ -247,8 +247,8 @@ const UpLoadPostPage = () => {
           </div>
           <div className="previewProfilePic formInput">
             {previewPictures ? (
-              previewPictures.map((picture) => (
-                <img className="picture" src={picture && picture}></img>
+              previewPictures.map((picture, index) => (
+                <img key={index} className="picture" src={picture && picture}></img>
               ))
             ) : (
               <></>

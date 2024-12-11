@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css'; // Đảm bảo import file CSS tổng quát
 import HomePage from './pages/home/HomePage';
 import Login from './pages/session/Login';
