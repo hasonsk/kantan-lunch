@@ -227,8 +227,6 @@ const uploadAvatar = createUploadMiddleware({
  *               - email
  *               - password
  *               - full_name
- *               - date_of_birth
- *               - phone_number
  *           encoding:
  *             avatar:
  *               style: form
@@ -305,13 +303,11 @@ router.post(
             .isString()
             .withMessage('Full name must be a string'),
         body('date_of_birth')
-            .notEmpty()
-            .withMessage('Date of birth is required')
+            .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
         body('phone_number')
-            .notEmpty()
-            .withMessage('Phone number is required')
+            .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
     ],
