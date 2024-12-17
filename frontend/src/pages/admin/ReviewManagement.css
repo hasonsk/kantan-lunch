@@ -1,4 +1,10 @@
-.post-list {
-    font-family: Arial, sans-serif;
-    margin: 20px 50px;
+.main-content {
+    display: flex;
+    gap: 70px; /* Khoảng cách giữa Filter và Restaurant Items */
+    align-items: flex-start; /* Không kéo giãn các phần tử theo chiều cao */
 }
+
+.header-wrapper {
+    padding: 2em 52px 0px 52px;
+}
+

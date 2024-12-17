@@ -57,44 +57,19 @@ const ReviewManagement = () => {
     // );
 
     return (
-        <div className="post-list">
+        <div className="header-wrapper">
             <AdminSearchbar
                 section="レビュー"
                 callback={setSearchQuery}
                 searchQuery=""
             />
-
-            {/*<div className="main-content">*/}
-            {/*    {postData.length > 0 ? (*/}
-            {/*        <div className="post-list">*/}
-            {/*            {postData.map((post) => {*/}
-            {/*                return (*/}
-            {/*                    <div key={post.id} className="post-card">*/}
-            {/*                        <div className="post-header">*/}
-            {/*                            <div className="post-avatar">*/}
-            {/*                                <img src={post.media[0] || 'default-avatar.jpg'} alt="User Avatar"/>*/}
-            {/*                            </div>*/}
-            {/*                            <div className="post-user-info">*/}
-            {/*                                <h3>{post.user}</h3>*/}
-            {/*                                <p>総レビュー数: {post.reviewCount || 0}</p>*/}
-            {/*                            </div>*/}
-            {/*                        </div>*/}
-            {/*                        <div className="post-body">*/}
-            {/*                            <p className="post-date">{post.created}</p>*/}
-            {/*                            <p className="post-content">{post.content}</p>*/}
-            {/*                            <div className="post-footer">*/}
-            {/*                                <button className="reject-button">拒否する</button>*/}
-            {/*                                <button className="accept-button">受け入れる</button>*/}
-            {/*                            </div>*/}
-            {/*                        </div>*/}
-            {/*                    </div>*/}
-            {/*                );*/}
-            {/*            })}*/}
-            {/*        </div>*/}
-            {/*    ) : (*/}
-            {/*        <p className="no-results">該当するレストランが見つかりませんでした。</p>*/}
-            {/*    )}*/}
-            {/*</div>*/}
+            <div className="main-content">
+                {postData.length > 0 ? (
+                    console.log("a")
+                ) : (
+                    <p className="no-results">該当するレストランが見つかりませんでした。</p>
+                )}
+            </div>
         </div>
     );
 };
