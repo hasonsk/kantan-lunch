@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import './UserProfile.css';
 import { useParams } from 'react-router-dom';
 import avatar from '../../assets/default-avatar.jpg';
+import { faL } from '@fortawesome/free-solid-svg-icons';
+import { jwtDecode } from 'jwt-decode';
 
 const UserProfile = () => {
   const mockData = {
@@ -94,6 +96,16 @@ const UserProfile = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       handleSubmit();
+                    }}
+                  />
+                  <input
+                    className="cancel-button"
+                    id="cancelButton"
+                    type="button"
+                    value="Cancel"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditing(false);
                     }}
                   />
                 </div>

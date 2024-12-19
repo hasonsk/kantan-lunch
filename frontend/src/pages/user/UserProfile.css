@@ -1,4 +1,9 @@
 /* UserProfile.css */
+
+* {
+  box-sizing: border-box;
+}
+
 .container {
   font-family: Arial, sans-serif;
   display: flex;
@@ -103,11 +108,21 @@
 
 .submit-button {
   width: 100%;
-  transition: color 1s;
+  margin: 10px 0 !important;
+  transition: color 0.5s;
+  text-align: center;
 }
-
-.submit-button:hover{
-    color:steelblue;
+.cancel-button {
+  width: 100%;
+  margin: 10px 0 !important;
+  transition: color 0.5s;
+  text-align: center;
+}
+.cancel-button:hover {
+  color: crimson;
+}
+.submit-button:hover {
+  color: steelblue;
 }
 
 .pointer {
