@@ -12,11 +12,9 @@ const profileSchema = new Schema({
   },
   date_of_birth: {
     type: Date,
-    required: true,
   },
   phone_number: {
     type: String,
-    required: true,
     trim: true,
   },
   avatar: {

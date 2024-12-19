@@ -37,9 +37,9 @@ const registerUser = async (req, res, next) => {
         const avatar = req.mediaUrls && req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Check if the user already exists
-        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+        const existingUser = await User.findOne({ $or: [{ email }] });
         if (existingUser) {
-            return res.status(409).json({ message: 'User with this email or username already exists.' });
+            return res.status(409).json({ message: 'User with this email already exists.' });
         }
 
         // Create new user profile object

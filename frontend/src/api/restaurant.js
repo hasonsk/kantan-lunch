@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-// Cấu hình base URL cho Axios
-const api = axios.create({
-  baseURL: 'https://locahost:3000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { api } from './apiConfig.js';
 
 export const getRestaurants = async (queryParams = {}) => {
   try {

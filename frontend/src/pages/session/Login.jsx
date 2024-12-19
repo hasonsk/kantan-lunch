@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { LogIn } from '../../redux/userSlice';
+import { login } from '../../api/user';
 
 function Login() {
   const isLoggedIn = useSelector((state) => state.user.value);
   const dispatch = useDispatch();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
@@ -16,8 +17,8 @@ function Login() {
   const validate = () => {
     const errors = {};
 
-    if (!username.trim()) {
-      errors.username = 'ユーザー名は空にできません';
+    if (!email.trim()) {
+      errors.email = 'メールアドレスは空にできません';
     }
 
     if (!password) {
@@ -30,29 +31,12 @@ function Login() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!validate()) {
-      return;
-    }
-
+  const handleLogin = async (event) => {
+    event.preventDefault();
     try {
-      const response = await fetch('https://your-api-endpoint.com/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      if (!validate()) return;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setErrors({ apiError: errorData.message || 'ログインに失敗しました' });
-        return;
-      }
-
-      const data = await response.json();
+      const data = await login({ email, password });
       console.log('ログイン成功:', data);
       dispatch(LogIn());
       if (rememberMe) {
@@ -60,7 +44,6 @@ function Login() {
       } else {
         sessionStorage.setItem('authToken', data.token);
       }
-
       navigate('/');
     } catch (error) {
       console.error('ログインエラー:', error);
@@ -97,15 +80,15 @@ function Login() {
                       <div className="form-outline mb-4">
                         <input
                           type="text"
-                          id="username"
+                          id="email"
                           className="form-control"
-                          placeholder="ユーザーネーム"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="メールアドレス"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                         />
-                        {errors.username && (
+                        {errors.email && (
                           <small className="text-danger">
-                            {errors.username}
+                            {errors.email}
                           </small>
                         )}
                       </div>
