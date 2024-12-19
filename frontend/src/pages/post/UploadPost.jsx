@@ -5,8 +5,11 @@ import './UpLoadPost.css';
 import { createPost } from '../../api/post';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getRestaurantById, getRestaurants } from '../../api/restaurant';
+import { hideError, showError } from '../../redux/errorSlice';
 
 const UpLoadPostPage = () => {
+  const firstUpdate = useRef(true);
+  const dispatch = useDispatch();
   const { state } = useLocation();
   const [restaurantSearch, setRestaurant] = useState('');
   const [dishSearch, setDishSearch] = useState('');
@@ -19,14 +22,20 @@ const UpLoadPostPage = () => {
   const [fixed, isFixed] = useState(0);
   const [previewPictures, setPreviewPicture] = useState([]);
   const [textArea, setTextArea] = useState();
-  const [errMessage, setErrMessage] = useState();
+  const [errMessage, setErrMessage] = useState('');
   const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    console.log('An error occurred');
+    dispatch(showError(errMessage));
+  }, [errMessage]);
 
   useEffect(() => {
     if (state) {
       console.log('hi');
-      try {
-        const restaurantFetch = async () => {
+
+      const restaurantFetch = async () => {
+        try {
           const result = await getRestaurantById(state.restaurantId);
 
           setRestaurant(result.name);
@@ -34,32 +43,35 @@ const UpLoadPostPage = () => {
           setIsVisible2(0);
           setDish(result.dishes);
           setBaseDish(result.dishes);
-        };
-      } catch (err) {
-        setErrMessage(err.message);
-      }
+        } catch (err) {
+          setErrMessage(err.message);
+        }
+      };
+      restaurantFetch();
     }
   }, []); //Set state if go from restaurant page
 
   const handleRestaurantChoose = async (e) => {
-    try {
-      setRestaurant(e);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(async () => {
-        console.log('User stopped typing:', restaurantSearch); //check
-        const queryObj = { search: e }; //get for query
-        console.log(queryObj);
-        const resList = await getRestaurants(queryObj); //get restaurant based on search
-        setFilteredRestaurant(resList);
-      }, 500);
-      setIsVisible1(0);
-      setIsVisible2(1);
-    } catch (err) {
-      setErrMessage(err.message);
-      console.log(err);
+    setRestaurant(e);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
+    timeoutRef.current = setTimeout(async () => {
+      console.log('User stopped typing:', restaurantSearch); //check
+      const queryObj = { search: e }; //get for query
+      console.log(queryObj);
+      try {
+        const resList = await getRestaurants(queryObj); //get restaurant based on search
+        console.log('Reslist:');
+        console.log(resList);
+        setFilteredRestaurant(resList);
+      } catch (err) {
+        console.log(err);
+        setErrMessage(err.message);
+      }
+    }, 500);
+    setIsVisible1(0);
+    setIsVisible2(1);
   };
 
   const handlePreviewPicture = (e) => {

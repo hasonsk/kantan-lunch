@@ -1,0 +1,84 @@
+/* Error modal overlay (transparent background to cover the full screen) */
+.error-modal-overlay {
+  position: fixed;
+  border-radius: 20px;
+  bottom: 20px; /* Distance from the bottom of the screen */
+  left: 20px; /* Distance from the left side of the screen */
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1000;
+  -webkit-animation: fadein 0.5s linear forwards;
+  animation: fadein 0.5s linear forwards;
+}
+
+.modal-close {
+  -webkit-animation: fadeout 0.5s linear forwards;
+  animation: fadeout 0.5s linear forwards;
+}
+
+/* Modal content (red error box) */
+.error-modal-content {
+  background-color: #f8d7da; /* Light red background for error */
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px; /* Modal width */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Close button */
+.error-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #721c24; /* Red color for close button */
+}
+
+/* Error message styles */
+.error-modal-content h2 {
+  color: #721c24; /* Dark red color for the title */
+  margin-top: 0;
+}
+
+.error-modal-content p {
+  color: #721c24; /* Dark red color for the error message */
+}
+
+@-webkit-keyframes fadeout {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeout {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

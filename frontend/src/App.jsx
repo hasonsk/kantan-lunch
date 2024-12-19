@@ -15,9 +15,11 @@ import { useSelector } from 'react-redux';
 import AdminHeader from './components/commons/admin/AdminHeader';
 import ReviewManagement from './pages/admin/ReviewManagement';
 import ThrottleExample from './components/ratings/RatingForm';
+import ErrorModal from './components/commons/Modal/Modal';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.value);
+  const showModal = useSelector((state) => state.error.value);
   let location = useLocation();
   return (
     <div>
@@ -56,6 +58,7 @@ function App() {
       {location.pathname !== '/login' && location.pathname !== '/signup' && (
         <Footer />
       )}
+      {showModal ? <ErrorModal /> : null}
     </div>
   );
 }
