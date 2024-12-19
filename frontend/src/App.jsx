@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'; // Đảm bảo import file CSS tổng quát
 import HomePage from './pages/home/HomePage';
@@ -15,6 +15,7 @@ import AdminHeader from './components/commons/admin/AdminHeader';
 import ReviewManagement from './pages/admin/ReviewManagement';
 import ThrottleExample from './components/ratings/RatingForm';
 import ErrorModal from './components/commons/Modal/Modal';
+import UserProfile from './pages/user/UserProfile';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.value);
@@ -30,7 +31,8 @@ function App() {
       <main>
         {/* Các route chính */}
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Navigate to='/home' replace />} />
+          <Route path='/home' element={<HomePage />} />
           <Route path="/restaurant-list" element={<RestaurantList />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
           <Route path="/login" element={<Login />} />
@@ -42,11 +44,12 @@ function App() {
               isLoggedIn ? (
                 <UpLoadPostPage />
               ) : (
-                // <Navigate to="/signin" replace />
+                //<Navigate to="/signin" replace />
                 <UpLoadPostPage />
               )
             }
           />
+          <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/admin" element={<h1>Admin Page</h1>} />
           <Route path="/admin/user" element={<h1>User Management</h1>} />
           <Route path="/admin/review" element={<ReviewManagement />} />
