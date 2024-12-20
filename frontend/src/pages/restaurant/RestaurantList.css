@@ -91,15 +91,22 @@
   flex-direction: column;
   text-align: left;
   gap: 10px;
-  flex : auto;
+  flex : 2;
 }
 
 .restaurant-name {
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed #ccc;
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--text-light-color);
+    text-align: left;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    display: block; /* Đảm bảo nó là một khối riêng */
+    word-break: break-word; /* Tách từ khi tràn */
+    overflow-wrap: anywhere; /* Bẻ dòng ở bất kỳ vị trí nào */
+    white-space: normal; /* Đảm bảo nội dung xuống dòng */
+    max-width: 100%; /* Giới hạn chiều rộng để phù hợp vùng chứa */
+    border-bottom: 1px dashed #ccc;
 }
 
 .restaurant-rating {

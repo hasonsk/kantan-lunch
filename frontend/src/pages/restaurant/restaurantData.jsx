@@ -94,6 +94,132 @@ const restaurantData = [
         reviewed: true
       }
     ]
+  },
+  {
+    id: 3,
+    name: "オーシャン・デライト",
+    media: ["https://r2.nucuoimekong.com/wp-content/uploads/cac-quan-an-ngon-o-sai-gon.jpg", "https://via.placeholder.com/150"],
+    address: "コースタルシティ、シーサイドレーン456",
+    phone_number: "+81-987-654-3210",
+    open_time: "10:00 AM",
+    close_time: "11:00 PM",
+    average_rating: 4.7,
+    dishes: [
+      {
+        id: 3,
+        name: "シーフードプラッター",
+        media: ["https://via.placeholder.com/150"],
+        price: 19.99
+      },
+      {
+        id: 4,
+        name: "ロブスタービスク",
+        media: ["https://via.placeholder.com/150"],
+        price: 14.99
+      }
+    ],
+    posts: [
+      {
+        id: 3,
+        caption: "新鮮なシーフードと海の景色。",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [205, 206],
+        user_id: 303,
+        reviewed: true
+      },
+      {
+        id: 4,
+        caption: "少し高いけど価値がある！",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [207, 208],
+        user_id: 304,
+        reviewed: true
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: "オーシャン・デライト",
+    media: ["https://r2.nucuoimekong.com/wp-content/uploads/cac-quan-an-ngon-o-sai-gon.jpg", "https://via.placeholder.com/150"],
+    address: "コースタルシティ、シーサイドレーン456",
+    phone_number: "+81-987-654-3210",
+    open_time: "10:00 AM",
+    close_time: "11:00 PM",
+    average_rating: 4.7,
+    dishes: [
+      {
+        id: 3,
+        name: "シーフードプラッター",
+        media: ["https://via.placeholder.com/150"],
+        price: 19.99
+      },
+      {
+        id: 4,
+        name: "ロブスタービスク",
+        media: ["https://via.placeholder.com/150"],
+        price: 14.99
+      }
+    ],
+    posts: [
+      {
+        id: 3,
+        caption: "新鮮なシーフードと海の景色。",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [205, 206],
+        user_id: 303,
+        reviewed: true
+      },
+      {
+        id: 4,
+        caption: "少し高いけど価値がある！",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [207, 208],
+        user_id: 304,
+        reviewed: true
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "オーシャン・デライト",
+    media: ["https://r2.nucuoimekong.com/wp-content/uploads/cac-quan-an-ngon-o-sai-gon.jpg", "https://via.placeholder.com/150"],
+    address: "コースタルシティ、シーサイドレーン456",
+    phone_number: "+81-987-654-3210",
+    open_time: "10:00 AM",
+    close_time: "11:00 PM",
+    average_rating: 4.7,
+    dishes: [
+      {
+        id: 3,
+        name: "シーフードプラッター",
+        media: ["https://via.placeholder.com/150"],
+        price: 19.99
+      },
+      {
+        id: 4,
+        name: "ロブスタービスク",
+        media: ["https://via.placeholder.com/150"],
+        price: 14.99
+      }
+    ],
+    posts: [
+      {
+        id: 3,
+        caption: "新鮮なシーフードと海の景色。",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [205, 206],
+        user_id: 303,
+        reviewed: true
+      },
+      {
+        id: 4,
+        caption: "少し高いけど価値がある！",
+        media: ["https://via.placeholder.com/150"],
+        like_list: [207, 208],
+        user_id: 304,
+        reviewed: true
+      }
+    ]
   }
 ];
 
