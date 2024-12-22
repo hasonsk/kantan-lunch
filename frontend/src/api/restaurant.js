@@ -18,8 +18,8 @@ export const getRestaurants = async (queryParams = {}) => {
 };
 
 // Lấy danh sách tất cả nhà hàng
-export const getAllRestaurants = async () => {
-  const response = await api.get('/restaurants');
+export const getAllRestaurants = async (searchQuery) => {
+  const response = await api.get(`/restaurants?search=${searchQuery}`);
   return response.data;
 };
 
