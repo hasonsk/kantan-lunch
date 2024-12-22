@@ -1,0 +1,47 @@
+/* Style cho ô upload */
+.upload-area {
+    font-size: 1.5rem;
+    cursor: pointer;
+    /* Đảm bảo toàn bộ div là pointer */
+    position: relative;
+    /* Để input file ở trên */
+}
+
+/* Style cho input[type="file"] */
+.upload-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    /* Ẩn input file */
+    cursor: pointer;
+    /* Đảm bảo con trỏ trên toàn bộ ô */
+}
+
+
+.img-upload {
+    width: 100%;
+    /* Đảm bảo hình ảnh rộng bằng với vùng input file */
+    max-width: 200px;
+    /* Tương ứng với chiều rộng của vùng upload */
+    height: auto;
+    /* Đảm bảo tỷ lệ khung hình không bị méo */
+    border: 1px solid #ddd;
+    /* (Tùy chọn) Viền ảnh cho rõ ràng hơn */
+    border-radius: 5px;
+    /* (Tùy chọn) Bo góc ảnh */
+}
+
+.menu-image-container {
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+}
+
+.menu-image-container img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
