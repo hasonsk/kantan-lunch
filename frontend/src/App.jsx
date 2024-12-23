@@ -8,6 +8,7 @@ import Login from './pages/session/Login';
 import Signup from './pages/session/Signup';
 import RestaurantList from './pages/restaurant/RestaurantList';
 import RestaurantDetail from './pages/restaurant/RestaurantDetail';
+import RestaurantManagement from './admin/RestaurantManagement';
 import Header from './components/commons/Header';
 import Footer from './components/commons/Footer';
 import UpLoadPostPage from './pages/post/UploadPost';
@@ -37,6 +38,7 @@ function App() {
                         <Route path="/restaurants/:id" element={<RestaurantDetail/>}/>
                         <Route path="/login" element={<Login/>}/>
                         <Route path="/signup" element={<Signup/>}/>
+                        <Route path="/admin/restaurant-management" element={<RestaurantManagement/>}/>
                         <Route
                             path="/comment"
                             element={
