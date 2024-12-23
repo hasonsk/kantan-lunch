@@ -1,26 +1,78 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import restaurantData from '../restaurant/restaurantData';
 import './UploadPost.jsx';
 import { createPost } from '../../api/post';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getRestaurantById, getRestaurants } from '../../api/restaurant';
+import { hideError, showError } from '../../redux/errorSlice';
 
 const UpLoadPostPage = () => {
-  const isLoggedIn = useSelector((state) => state.user.value); // Access login status from Redux store
-  if (isLoggedIn == false) navigate('/signin');
+  const firstUpdate = useRef(true);
+  const dispatch = useDispatch();
+  const { state } = useLocation();
   const [restaurantSearch, setRestaurant] = useState('');
   const [dishSearch, setDishSearch] = useState('');
   const [baseDish, setBaseDish] = useState([]);
   const [dish, setDish] = useState([]);
-  const [filteredRestaurant, setFilteredRestaurant] = useState(restaurantData);
+  const [filteredRestaurant, setFilteredRestaurant] = useState([]);
   const [isVisble1, setIsVisible1] = useState(0);
   const [isVisble2, setIsVisible2] = useState(0);
   const [hover, setRatingHover] = useState(0);
   const [fixed, isFixed] = useState(0);
-  const [row, setRow] = useState(5);
   const [previewPictures, setPreviewPicture] = useState([]);
   const [textArea, setTextArea] = useState();
-  const [errMessage, setErrMessage] = useState();
+  const [errMessage, setErrMessage] = useState('');
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    console.log('An error occurred');
+    dispatch(showError(errMessage));
+  }, [errMessage]);
+
+  useEffect(() => {
+    if (state) {
+      console.log('hi');
+
+      const restaurantFetch = async () => {
+        try {
+          const result = await getRestaurantById(state.restaurantId);
+
+          setRestaurant(result.name);
+          setIsVisible1(result.id);
+          setIsVisible2(0);
+          setDish(result.dishes);
+          setBaseDish(result.dishes);
+        } catch (err) {
+          setErrMessage(err.message);
+        }
+      };
+      restaurantFetch();
+    }
+  }, []); //Set state if go from restaurant page
+
+  const handleRestaurantChoose = async (e) => {
+    setRestaurant(e);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(async () => {
+      console.log('User stopped typing:', restaurantSearch); //check
+      const queryObj = { search: e }; //get for query
+      console.log(queryObj);
+      try {
+        const resList = await getRestaurants(queryObj); //get restaurant based on search
+        console.log('Reslist:');
+        console.log(resList);
+        setFilteredRestaurant(resList);
+      } catch (err) {
+        console.log(err);
+        setErrMessage(err.message);
+      }
+    }, 500);
+    setIsVisible1(0);
+    setIsVisible2(1);
+  };
 
   const handlePreviewPicture = (e) => {
     const test = Array.from(e.target.files);
@@ -46,16 +98,15 @@ const UpLoadPostPage = () => {
       await createPost(formData);
     } catch (e) {
       setErrMessage(e.message);
-      console.log(e);
+      console.log('Error: ' + errMessage);
     }
   };
 
   return (
     <div id="formBlock">
-      <div></div>
       <form>
         <div className="formInput">
-          <h2 className="formInput">レストラン名</h2>
+          <h4 className="formInput">レストラン名</h4>
           <div className="formInput">
             <input
               type="text"
@@ -63,18 +114,7 @@ const UpLoadPostPage = () => {
               id="resInput"
               value={restaurantSearch}
               onChange={(e) => {
-                setRestaurant(e.target.value);
-                setFilteredRestaurant(
-                  restaurantSearch
-                    ? restaurantData.filter((query) =>
-                        query.name
-                          .toLowerCase()
-                          .includes(restaurantSearch.toLowerCase())
-                      )
-                    : restaurantData
-                );
-                setIsVisible1(0);
-                setIsVisible2(1);
+                handleRestaurantChoose(e.target.value);
               }}
             />
           </div>
@@ -111,10 +151,12 @@ const UpLoadPostPage = () => {
           )}
         </div>
         <div onMouseLeave={() => setRatingHover(fixed)} className="formInput">
-          <h2 className="formInput">格付け</h2>
+          <h4 className="formInput">格付け</h4>
           <div className="formInput">
             <i
-              className={hover > 0 ? 'fa-solid fa-star' : 'fa-regular fa-star'}
+              className={
+                hover > 0 ? 'fa-solid fa-star hover::' : 'fa-regular fa-star'
+              }
               onMouseOver={() => setRatingHover(1)}
               onClick={() => isFixed(1)}
             ></i>
@@ -141,7 +183,7 @@ const UpLoadPostPage = () => {
           </div>
         </div>
         <div className="formInput">
-          <h2 className="formInput">何を食べた</h2>
+          <h4 className="formInput">何を食べた</h4>
           <div className="formInput">
             <input
               type="text"
@@ -191,7 +233,7 @@ const UpLoadPostPage = () => {
           )}
         </div>
         <div className="formInput">
-          <h2 className="formInput">コメントを聞く</h2>
+          <h4 className="formInput">コメントを聞く</h4>
           <div className="formInput">
             <textarea
               placeholder="Start writing here"
@@ -202,10 +244,10 @@ const UpLoadPostPage = () => {
           </div>
         </div>
         <div className="formInput">
-          <h2 className="formInput">Upload file(s)</h2>
+          <h4 className="formInput">Upload file(s)</h4>
           <div className="formInput image-upload">
-            <label for="fileInput">
-              <i class="attach-doc fa-solid fa-upload"></i>
+            <label htmlFor="fileInput">
+              <i className="attach-doc fa-solid fa-upload"></i>
             </label>
             <input
               type="file"
@@ -217,8 +259,8 @@ const UpLoadPostPage = () => {
           </div>
           <div className="previewProfilePic formInput">
             {previewPictures ? (
-              previewPictures.map((picture) => (
-                <img className="picture" src={picture && picture}></img>
+              previewPictures.map((picture, index) => (
+                <img key={index} className="picture" src={picture && picture}></img>
               ))
             ) : (
               <></>
@@ -227,6 +269,7 @@ const UpLoadPostPage = () => {
         </div>
         <div className="formInput">
           <input
+            className="formInput"
             id="submitButton"
             type="submit"
             value="Post Blog"

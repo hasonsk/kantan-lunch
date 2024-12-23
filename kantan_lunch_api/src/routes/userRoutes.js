@@ -43,12 +43,9 @@ const router = Router();
  *         - date_of_birth
  *         - phone_number
  *       properties:
- *         first_name:
+ *         full_name:
  *           type: string
- *           description: User's first name
- *         last_name:
- *           type: string
- *           description: User's last name
+ *           description: User's full name
  *         date_of_birth:
  *           type: string
  *           format: date
@@ -60,8 +57,7 @@ const router = Router();
  *           type: string
  *           description: URL to the user's avatar image
  *       example:
- *         first_name: "John"
- *         last_name: "Doe"
+ *         full_name: "John Doe"
  *         date_of_birth: "1990-01-01"
  *         phone_number: "+1234567890"
  *         avatar: "https://example.com/avatar.jpg"
@@ -90,8 +86,7 @@ const router = Router();
  *         email: "johndoe@example.com"
  *         password: "securepassword"
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -126,8 +121,7 @@ const router = Router();
  *         role: "user"
  *         banned: false
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -176,8 +170,7 @@ const router = Router();
  *         role: "user"
  *         banned: false
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -208,31 +201,32 @@ const uploadAvatar = createUploadMiddleware({
  *             properties:
  *               username:
  *                 type: string
+ *                 example: johndoe
  *               email:
  *                 type: string
+ *                 example: "johndoe@example.com"
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: securepassword
  *               avatar:
  *                 type: string
  *                 format: binary
- *               first_name:
+ *               full_name:
  *                 type: string
- *               last_name:
- *                 type: string
+ *                 example: John Doe
  *               date_of_birth:
  *                 type: string
  *                 format: date
+ *                 example: 1990-01-01
  *               phone_number:
  *                 type: string
+ *                 example: "+1234567890"
  *             required:
  *               - username
  *               - email
  *               - password
- *               - avatar
- *               - first_name
- *               - last_name
- *               - date_of_birth
- *               - phone_number
+ *               - full_name
  *           encoding:
  *             avatar:
  *               style: form
@@ -256,9 +250,7 @@ const uploadAvatar = createUploadMiddleware({
  *                 profile:
  *                   type: object
  *                   properties:
- *                     first_name:
- *                       type: string
- *                     last_name:
+ *                     full_name:
  *                       type: string
  *                     date_of_birth:
  *                       type: string
@@ -276,8 +268,7 @@ const uploadAvatar = createUploadMiddleware({
  *                 email: "johndoe@example.com"
  *                 role: "user"
  *                 profile:
- *                   first_name: "John"
- *                   last_name: "Doe"
+ *                   full_name: "John Doe"
  *                   date_of_birth: "1990-01-01"
  *                   phone_number: "+1234567890"
  *                   avatar: "https://cloudinary.com/avatar.jpg"
@@ -306,24 +297,17 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('first_name')
+        body('full_name')
             .notEmpty()
-            .withMessage('First name is required')
+            .withMessage('Full name is required')
             .isString()
-            .withMessage('First name must be a string'),
-        body('last_name')
-            .notEmpty()
-            .withMessage('Last name is required')
-            .isString()
-            .withMessage('Last name must be a string'),
+            .withMessage('Full name must be a string'),
         body('date_of_birth')
-            .notEmpty()
-            .withMessage('Date of birth is required')
+            .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
         body('phone_number')
-            .notEmpty()
-            .withMessage('Phone number is required')
+            .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
     ],
@@ -429,9 +413,7 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
- *               first_name:
- *                 type: string
- *               last_name:
+ *               full_name:
  *                 type: string
  *               date_of_birth:
  *                 type: string
@@ -462,14 +444,10 @@ router.put(
     authenticate,
     uploadAvatar,
     [
-        body('first_name')
+        body('full_name')
             .optional()
             .isString()
-            .withMessage('First name must be a string'),
-        body('last_name')
-            .optional()
-            .isString()
-            .withMessage('Last name must be a string'),
+            .withMessage('Full name must be a string'),
         body('date_of_birth')
             .optional()
             .isISO8601()
@@ -562,28 +540,32 @@ router.put(
  *             properties:
  *               username:
  *                 type: string
+ *                 example: adminuser1
  *               email:
  *                 type: string
+ *                 example: "adminuser1@example.com"
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: securepassword
  *               avatar:
  *                 type: string
  *                 format: binary
- *               first_name:
+ *               full_name:
  *                 type: string
- *               last_name:
- *                 type: string
+ *                 example: Admin User
  *               date_of_birth:
  *                 type: string
  *                 format: date
+ *                 example: 1990-01-01
  *               phone_number:
  *                 type: string
+ *                 example: "+1234567890"
  *             required:
  *               - username
  *               - email
  *               - password
- *               - first_name
- *               - last_name
+ *               - full_name
  *               - date_of_birth
  *               - phone_number
  *           encoding:
@@ -609,9 +591,7 @@ router.put(
  *                 profile:
  *                   type: object
  *                   properties:
- *                     first_name:
- *                       type: string
- *                     last_name:
+ *                     full_name:
  *                       type: string
  *                     date_of_birth:
  *                       type: string
@@ -627,8 +607,7 @@ router.put(
  *                 email: "admin@example.com"
  *                 role: "admin"
  *                 profile:
- *                   first_name: "Admin"
- *                   last_name: "User"
+ *                   full_name: "Admin User"
  *                   date_of_birth: "1990-01-01"
  *                   phone_number: "+1234567890"
  *                   avatar: "https://cloudinary.com/avatar.jpg"
@@ -663,16 +642,11 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('first_name')
+        body('full_name')
             .notEmpty()
-            .withMessage('First name is required')
+            .withMessage('Full name is required')
             .isString()
-            .withMessage('First name must be a string'),
-        body('last_name')
-            .notEmpty()
-            .withMessage('Last name is required')
-            .isString()
-            .withMessage('Last name must be a string'),
+            .withMessage('Full name must be a string'),
         body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')

@@ -14,7 +14,7 @@ const RestaurantList = () => {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const data = await getAllRestaurants();
+      const data = await getAllRestaurants(searchQuery);
       console.log(data);
       setRestaurants(data);
       setLoading(false);
@@ -26,7 +26,7 @@ const RestaurantList = () => {
 
   useEffect(() => {
     fetchRestaurants();
-  }, []);
+  }, [searchQuery]);
 
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating);
@@ -73,7 +73,7 @@ const RestaurantList = () => {
       </div>
 
       <div className="main-content">
-      <div className="filter-section">
+        <div className="filter-section">
           <p>Text</p>
           <label><input type="checkbox" /> Option 1</label>
           <label><input type="checkbox" /> Option 2</label>

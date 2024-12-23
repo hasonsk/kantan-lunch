@@ -21,8 +21,7 @@ const seedUsers = async () => {
             password: await bcrypt.hash('Admin@123', 10),
             role: 'admin',
             profile: {
-                first_name: 'Admin',
-                last_name: 'User',
+                full_name: 'Admin User',
                 date_of_birth: new Date('1980-01-01'),
                 phone_number: '+84912345678',
                 avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg',
@@ -34,8 +33,7 @@ const seedUsers = async () => {
             password: await bcrypt.hash('User@123', 10),
             role: 'user',
             profile: {
-                first_name: 'John',
-                last_name: 'Doe',
+                full_name: 'John Doe',
                 date_of_birth: new Date('1990-05-15'),
                 phone_number: '+84987654321',
                 avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733542335/kantan_lunch/avatars/eqozecoerlnitx3mdetu.png',
@@ -47,8 +45,7 @@ const seedUsers = async () => {
             password: await bcrypt.hash('User@123', 10),
             role: 'user',
             profile: {
-                first_name: 'Jane',
-                last_name: 'Doe',
+                full_name: 'Jane Doe',
                 date_of_birth: new Date('1992-07-20'),
                 phone_number: '+84911223344',
                 avatar: 'https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg',

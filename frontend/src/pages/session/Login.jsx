@@ -1,10 +1,15 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Login.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { LogIn } from '../../redux/userSlice';
+import { login } from '../../api/user';
 
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const isLoggedIn = useSelector((state) => state.user.value);
+  const dispatch = useDispatch();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -12,62 +17,44 @@ function Login() {
   const validate = () => {
     const errors = {};
 
-    if (!username.trim()) {
-      errors.username = "ユーザー名は空にできません";
+    if (!email.trim()) {
+      errors.email = 'メールアドレスは空にできません';
     }
 
     if (!password) {
-      errors.password = "パスワードは空にできません";
+      errors.password = 'パスワードは空にできません';
     } else if (password.length < 8) {
-      errors.password = "パスワードは8文字以上でなければなりません";
+      errors.password = 'パスワードは8文字以上でなければなりません';
     }
 
     setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!validate()) {
-      return;
-    }
-
+  const handleLogin = async (event) => {
+    event.preventDefault();
     try {
-      const response = await fetch("https://your-api-endpoint.com/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      if (!validate()) return;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setErrors({ apiError: errorData.message || "ログインに失敗しました" });
-        return;
-      }
-
-      const data = await response.json();
-      console.log("ログイン成功:", data);
-
+      const data = await login({ email, password });
+      console.log('ログイン成功:', data);
+      dispatch(LogIn());
       if (rememberMe) {
-        localStorage.setItem("authToken", data.token);
+        localStorage.setItem('authToken', data.token);
       } else {
-        sessionStorage.setItem("authToken", data.token);
+        sessionStorage.setItem('authToken', data.token);
       }
-
-      navigate("/");
+      navigate('/');
     } catch (error) {
-      console.error("ログインエラー:", error);
-      setErrors({ apiError: "エラーが発生しました。後で再試行してください。" });
+      console.error('ログインエラー:', error);
+      setErrors({ apiError: 'エラーが発生しました。後で再試行してください。' });
     }
   };
 
   return (
     <section
       className="h-100 gradient-form"
-      style={{ backgroundColor: "#eee" }}
+      style={{ backgroundColor: '#eee' }}
     >
       <div className="container py-5 h-100">
         <div className="row d-flex justify-content-center align-items-center h-100">
@@ -80,9 +67,11 @@ function Login() {
                       <img
                         src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
                         alt="logo"
-                        style={{ width: "185px" }}
+                        style={{ width: '185px' }}
                       />
-                      <h4 className="mt-1 mb-5 pb-1">私たちは KANTAN LUNCH です</h4>
+                      <h4 className="mt-1 mb-5 pb-1">
+                        私たちは KANTAN LUNCH です
+                      </h4>
                     </div>
 
                     <form onSubmit={handleLogin}>
@@ -91,15 +80,15 @@ function Login() {
                       <div className="form-outline mb-4">
                         <input
                           type="text"
-                          id="username"
+                          id="email"
                           className="form-control"
-                          placeholder="ユーザーネーム"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="メールアドレス"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                         />
-                        {errors.username && (
+                        {errors.email && (
                           <small className="text-danger">
-                            {errors.username}
+                            {errors.email}
                           </small>
                         )}
                       </div>
@@ -152,11 +141,13 @@ function Login() {
                       </div>
 
                       <div className="d-flex align-items-center justify-content-center pb-4">
-                        <p className="mb-0 me-2">アカウントをお持ちでない場合：</p>
+                        <p className="mb-0 me-2">
+                          アカウントをお持ちでない場合：
+                        </p>
                         <button
                           type="button"
                           className="btn btn-outline-danger"
-                          onClick={() => navigate("/signup")}
+                          onClick={() => navigate('/signup')}
                         >
                           サインアップ
                         </button>
