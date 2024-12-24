@@ -27,7 +27,7 @@ const ReviewManagement = () => {
     };
 
     useEffect(() => {
-        // fetchPosts();
+        fetchPosts();
     }, []);
 
     const renderStars = (rating) => {
