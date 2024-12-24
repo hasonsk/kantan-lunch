@@ -4,8 +4,24 @@ import { useParams } from 'react-router-dom';
 import avatar from '../../assets/default-avatar.jpg';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 import { jwtDecode } from 'jwt-decode';
+import { useSelector } from 'react-redux';
 
 const UserProfile = () => {
+  const { id } = useParams();
+  console.log('profileId');
+
+  console.log(id);
+
+  const { value, rememberMe } = useSelector((state) => state.user);
+  console.log(value);
+  console.log(rememberMe);
+  var userId;
+  if (value === true) {
+    //TAKE ID OF THE CURRENT LOGGED IN USER IF POSSIBLE
+    if (rememberMe) {
+      userId = jwtDecode(localStorage.getItem('token')).id;
+    } else userId = jwtDecode(sessionStorage.getItem('token')).id;
+  }
   const mockData = {
     name: 'test1',
     email: 'test2@gmail.com',
@@ -30,7 +46,6 @@ const UserProfile = () => {
     },
   ];
 
-  const { id } = useParams();
   const [isUser, setIsUser] = useState();
   const [isEditing, setEditing] = useState(false);
   const [userInfo, setUserInfo] = useState(mockData);
@@ -51,9 +66,21 @@ const UserProfile = () => {
           <div className="user-info">
             <form>
               <div>
-                <a className="edit-profile" onClick={() => setEditing(true)}>
-                  Change your profile <i class="fas fa-edit"></i>
-                </a>
+                {userId && userId == id ? (
+                  <a className="edit-profile" onClick={() => setEditing(true)}>
+                    Change your profile <i class="fas fa-edit"></i>
+                  </a>
+                ) : (
+                  <>
+                    <a
+                      className="edit-profile"
+                      onClick={() => setEditing(true)}
+                    >
+                      Change your profile <i class="fas fa-edit"></i>
+                    </a>
+                  </>
+                )}
+
                 <label>ユーザ名</label>
                 <input
                   type="text"
