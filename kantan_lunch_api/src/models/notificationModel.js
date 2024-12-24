@@ -6,7 +6,7 @@ const { Schema } = mongoose;
 const notificationSchema = new Schema({
   type: {
     type: String,
-    enum: ['like', 'comment', 'follow', 'other'], // Add other types as needed
+    enum: ['like', 'comment'], 
     required: true,
   },
   user_id: {
@@ -18,6 +18,14 @@ const notificationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User', // The source of the notification
     required: true,
+  },
+  post_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Post',
+  },
+  is_sent: {
+    type: Boolean,
+    default: false,
   },
   created_at: {
     type: Date,

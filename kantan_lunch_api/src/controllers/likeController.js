@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import Like from '../models/likeModel.js';
 import Post from '../models/postModel.js';
 import User from '../models/userModel.js';
+import Notification from '../models/notificationModel.js';
+import { io, users } from '../app.js';
 
 /**
  * Like a Post
@@ -30,6 +32,30 @@ const likePost = async (req, res, next) => {
         post.like_count += 1;
         await post.save();
 
+        // Notify post author
+        const authorId = post.user_id.toString();
+
+        // Save notification to the database if the user is not connected
+        const notification = new Notification({
+            type: 'like',
+            user_id: authorId,
+            from: user_id,
+            post_id: post_id,
+        });
+        
+        const socketId = users[authorId];
+        if (socketId) {
+            io.to(socketId).emit('notification', {
+                message: `${req.user.username} liked your post.`,
+                postId: post_id,
+                timestamp: new Date(),
+            });
+            notification.is_sent = true;
+        } else {
+            notification.is_sent = false;
+        }
+        
+        await notification.save();
         res.status(201).json({ message: 'Post liked successfully.' });
     } catch (error) {
         // Handle duplicate like attempt
