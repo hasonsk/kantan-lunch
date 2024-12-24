@@ -10,17 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@reduxjs/toolkit": "^2.4.0",
     "axios": "^1.7.8",
     "bootstrap": "^5.3.3",
-    "@reduxjs/toolkit": "^2.4.0",
-
     "font-awesome": "^4.7.0",
     "frontend": "file:../frontend",
+    "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
+    "react-bootstrap": "^2.10.7",
+    "react-bootstrap-validation": "^0.1.11",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.4.0",
     "react-redux": "^9.1.2",
     "react-router-dom": "^6.28.0"
   },

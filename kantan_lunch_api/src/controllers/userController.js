@@ -29,24 +29,22 @@ const registerUser = async (req, res, next) => {
             username,
             email,
             password,
-            first_name,
-            last_name,
+            full_name,
             date_of_birth,
             phone_number
         } = req.body;
 
-        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
+        const avatar = req.mediaUrls && req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Check if the user already exists
-        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+        const existingUser = await User.findOne({ $or: [{ email }] });
         if (existingUser) {
-            return res.status(409).json({ message: 'User with this email or username already exists.' });
+            return res.status(409).json({ message: 'User with this email already exists.' });
         }
 
         // Create new user profile object
         const profile = {
-            first_name,
-            last_name,
+            full_name,
             date_of_birth,
             phone_number,
             avatar: avatar ? avatar : DEFAULT_AVT, // Cloudinary URL for the uploaded avatar, or default avatar
@@ -143,13 +141,17 @@ const getUserProfile = async (req, res, next) => {
  */
 const updateUserProfile = async (req, res, next) => {
     try {
-        const { first_name, last_name, date_of_birth, phone_number } = req.body;
-        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
+        const { 
+            full_name,
+            date_of_birth,
+            phone_number 
+        } = req.body;
+        
+        const avatar = req.mediaUrls && req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Build the profile update object dynamically
         const profileUpdates = {};
-        if (first_name !== undefined) profileUpdates['profile.first_name'] = first_name;
-        if (last_name !== undefined) profileUpdates['profile.last_name'] = last_name;
+        if (full_name !== undefined) profileUpdates['profile.full_name'] = full_name;
         if (date_of_birth !== undefined) profileUpdates['profile.date_of_birth'] = date_of_birth;
         if (phone_number !== undefined) profileUpdates['profile.phone_number'] = phone_number;
         if (avatar) profileUpdates['profile.avatar'] = avatar;
@@ -201,13 +203,12 @@ const registerAdmin = async (req, res, next) => {
             username, 
             email, 
             password, 
-            first_name, 
-            last_name, 
+            full_name,
             date_of_birth, 
             phone_number 
         } = req.body;
 
-        const avatar = req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
+        const avatar = req.mediaUrls && req.mediaUrls.length > 0 ? req.mediaUrls[0] : undefined;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -217,8 +218,7 @@ const registerAdmin = async (req, res, next) => {
 
         // Create admin profile object
         const profile = {
-            first_name,
-            last_name,
+            full_name,
             date_of_birth,
             phone_number,
             avatar: avatar ? avatar : DEFAULT_AVT_ADMIN, // Cloudinary URL for the uploaded avatar, or default avatar
