@@ -12,9 +12,9 @@ const AdminHeader = () => {
                 </div>
 
                 <nav className="sub-nav">
-                    <a href="/admin/user" className="sub-nav-link active">レビュー管理</a>
-                    <a href="/admin/review" className="sub-nav-link">コンテンツ管理ページ</a>
-                    <a href="/admin/menu" className="sub-nav-link">食品およびレストラン</a>
+                    <a href="/admin/user" className={`sub-nav-link ${location.pathname.endsWith('/user') ? 'active' : ''}`}>レビュー管理</a>
+                    <a href="/admin/review" className={`sub-nav-link ${location.pathname.endsWith('/review') ? 'active' : ''}`}>コンテンツ管理ページ</a>
+                    <a href="/admin/menu" className={`sub-nav-link ${location.pathname.endsWith('/menu') ? 'active' : ''}`}>食品およびレストラン</a>
                 </nav>
 
                 {/* Các icon bên phải */}
