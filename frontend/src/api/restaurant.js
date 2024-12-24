@@ -1,16 +1,25 @@
-import axios from 'axios';
+import { api } from './apiConfig.js';
 
-// Cấu hình base URL cho Axios
-const api = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const getRestaurants = async (queryParams = {}) => {
+  try {
+    console.log('test at apis');
+
+    const query = new URLSearchParams(queryParams).toString();
+    console.log(query);
+
+    const response = await api.get(`/restaurants?${query}`);
+    console.log('responded');
+    return response;
+  } catch (e) {
+    console.log('Error in apis');
+    console.log(e);
+    throw e;
+  }
+};
 
 // Lấy danh sách tất cả nhà hàng
-export const getAllRestaurants = async () => {
-  const response = await api.get('/restaurants');
+export const getAllRestaurants = async (searchQuery) => {
+  const response = await api.get(`/restaurants?search=${searchQuery}`);
   return response.data;
 };
 

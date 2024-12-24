@@ -1,5 +1,6 @@
 .fa-solid {
   color: gold;
+  cursor: pointer;
 }
 textarea {
   resize: none;
@@ -48,4 +49,8 @@ input {
 .picture {
   height: 200px;
   margin: 5px;
+}
+
+.error {
+  background-color: red;
 }

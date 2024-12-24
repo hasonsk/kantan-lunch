@@ -1,0 +1,6 @@
+.restaurant-list {
+  max-height: 500px; /* Giới hạn chiều cao danh sách */
+  overflow-y: auto;  /* Bật thanh cuộn dọc */
+  scroll-behavior: smooth; /* Kích hoạt smooth scroll */
+  padding-right: 10px; /* Tạo khoảng cách cho thanh cuộn */
+}
