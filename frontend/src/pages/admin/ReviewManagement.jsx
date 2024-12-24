@@ -30,23 +30,23 @@ const ReviewManagement = () => {
         // fetchPosts();
     }, []);
 
-    // const renderStars = (rating) => {
-    //     const filledStars = Math.floor(rating);
-    //     const halfStar = rating % 1 >= 0.5 ? 1 : 0;
-    //     const emptyStars = 5 - filledStars - halfStar;
-    //
-    //     return (
-    //         <>
-    //             {[...Array(filledStars)].map((_, i) => (
-    //                 <span key={`full-${i}`} className="filled">★</span>
-    //             ))}
-    //             {halfStar > 0 && <span className="half-filled">★</span>}
-    //             {[...Array(emptyStars)].map((_, i) => (
-    //                 <span key={`empty-${i}`} className="empty">★</span>
-    //             ))}
-    //         </>
-    //     );
-    // };
+    const renderStars = (rating) => {
+        const filledStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+        const emptyStars = 5 - filledStars - halfStar;
+
+        return (
+            <>
+                {[...Array(filledStars)].map((_, i) => (
+                    <span key={`full-${i}`} className="filled">★</span>
+                ))}
+                {halfStar > 0 && <span className="half-filled">★</span>}
+                {[...Array(emptyStars)].map((_, i) => (
+                    <span key={`empty-${i}`} className="empty">★</span>
+                ))}
+            </>
+        );
+    };
 
     const handleDetailsClick = (postId) => {
         navigate(`/admin/post/${postId}`);
@@ -65,7 +65,39 @@ const ReviewManagement = () => {
             />
             <div className="main-content">
                 {postData.length > 0 ? (
-                    console.log("a")
+                    <div className="item-table">
+                        {postData.map((post) => {
+                            return (
+                                <div key={post.id} className="post-row">
+                                    <div className="user-info">
+                                        <div>
+                                            {post.user}
+                                        </div>
+                                        <div>
+                                            <img src={post.media[0]} height="160px"></img>
+                                        </div>
+                                    </div>
+                                    <div className="review-info">
+                                    <div className="review-info-top">
+                                            <div className="review-info-rating">
+                                                {renderStars(post.average_rating)}
+                                            </div>
+                                            <div className="review-info-date">
+                                                {post.created}
+                                            </div>
+                                        </div>
+                                        <div className="review-info-content">
+                                            {post.content}
+                                        </div>
+                                        <div className="review-info-btn">
+                                            <button onClick={() => handleDetailsClick(post.id)}>Accept</button>
+                                            <button onClick={() => handleDetailsClick(post.id)}>Decline</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
                 ) : (
                     <p className="no-results">該当するレストランが見つかりませんでした。</p>
                 )}
