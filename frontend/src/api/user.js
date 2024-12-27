@@ -20,8 +20,8 @@ export const getProfile = async () => {
 
 // Lấy danh sách tất cả người dùng
 export const updateProfile = async (data) => {
-  const response = await api.post('/users/profile', data);
-  return response.data;
+  const response = await api.put('/users/profile', data);
+  return response;
 };
 
 // Register

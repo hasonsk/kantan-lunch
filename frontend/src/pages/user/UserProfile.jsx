@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './UserProfile.css';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import avatar from '../../assets/default-avatar.jpg';
 import { faL } from '@fortawesome/free-solid-svg-icons';
 import { jwtDecode } from 'jwt-decode';
 import { useSelector } from 'react-redux';
-
+import { getUserById, updateProfile } from '../../api/user';
+import { getAllPosts } from '../../api/post';
+import UncontrolledExample from '../../components/carousel';
 const UserProfile = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
-  console.log('profileId');
-
-  console.log(id);
-
+  const fetchBlog = async (id) => {
+    return (data = await getAllPosts({
+      limit: 100,
+      id: id,
+    }));
+  };
+  const fetchProfile = async (id) => {
+    return (data = await getUserById(id).profile); //expected output to be {date_of_birth:,phone_number:,fullname:,avatar:,}
+  };
   const { value, rememberMe } = useSelector((state) => state.user);
-  console.log(value);
-  console.log(rememberMe);
   var userId;
   if (value === true) {
     //TAKE ID OF THE CURRENT LOGGED IN USER IF POSSIBLE
@@ -23,34 +29,69 @@ const UserProfile = () => {
     } else userId = jwtDecode(sessionStorage.getItem('token')).id;
   }
   const mockData = {
-    name: 'test1',
-    email: 'test2@gmail.com',
-    tel: '0123456789',
+    full_name: 'test1',
+    date_of_birth: '',
+    phone_number: '0123456789',
   };
 
   const mockBlog = [
     {
-      id: '1',
-      content: 'some random content',
-      imageUrl: ['url1', 'url2', 'url3'],
+      _id: '1',
+      like_count: 3,
+      caption: 'some random content',
+      media: [
+        'https://images.unsplash.com/photo-1549396535-c11d5c55b9df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+        'https://images.unsplash.com/photo-1549396535-c11d5c55b9df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+        'https://images.unsplash.com/photo-1549396535-c11d5c55b9df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+      ],
+      user_id: '1',
     },
     {
-      id: '2',
-      content: 'some random content2',
-      imageUrl: ['url1', 'url2', 'url3'],
+      _id: '2',
+      like_count: 3,
+      caption: 'some random content',
+      media: ['url1', 'url2', 'url3'],
+      user_id: '1',
     },
     {
-      id: '3',
-      content: 'some random content4',
-      imageUrl: ['url1', 'url2', 'url3'],
+      _id: '4',
+      like_count: 3,
+      caption: 'some random content',
+      media: ['url1'],
+      user_id: '1',
     },
   ];
 
   const [isUser, setIsUser] = useState();
   const [isEditing, setEditing] = useState(false);
-  const [userInfo, setUserInfo] = useState(mockData);
-  const [blogList, setBlogList] = useState(mockBlog);
+  const [userInfo, setUserInfo] = useState({});
+  const [blogList, setBlogList] = useState([]);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    //setUserInfo(fetchProfile(id));
+    //setBlogList(fetchBlog(id));
+    setUserInfo(mockData);
+    setBlogList(mockBlog);
+  }, []);
+
+  const likePost = async (e) => {};
+
   const handleSubmit = async (e) => {
+    const avatarInput = document.getElementById('upload');
+    const formData = new FormData();
+    formData.append('full_name', userInfo.full_name);
+    formData.append('date_of_birth', formData.date_of_birth);
+    formData.append('phone_number', userInfo.phone_number);
+    formData.append('avatar', avatarInput.files[0]);
+    try {
+      const check = await updateProfile(formData);
+      if (check.status === 400) setError('Bad request');
+      if (check.status === 401) setError('Unauthorized request');
+      else if (check.status === 200) navigate(`/profile/${id}`);
+      else throw new Error('Internal Error');
+    } catch (e) {
+      console.log(e);
+    }
     console.log(e);
   };
 
@@ -59,46 +100,54 @@ const UserProfile = () => {
       <div className="content">
         {/* Sidebar Section */}
         <aside className="sidebar">
-          <img
-            className="avatar"
-            src={userInfo.avatarUrl ? userInfo.avatarUrl : avatar}
-          ></img>
+          <div className="profile-picture-container">
+            {userId && userId == id ? (
+              <div className="edit-profile" onClick={() => setEditing(true)}>
+                Change your profile <i class="fas fa-edit"></i>
+              </div>
+            ) : (
+              <>
+                <a className="edit-profile" onClick={() => setEditing(true)}>
+                  Change your profile <i class="fas fa-edit"></i>
+                </a>
+              </>
+            )}
+            <img
+              className="avatar"
+              src={userInfo.avatar ? userInfo.avatar : avatar}
+            ></img>
+            {isEditing ? (
+              <label>
+                <div class="hover-text">
+                  Edit Profile Picture
+                  <input type="file" id="upload" style={{ display: 'none' }} />
+                </div>
+              </label>
+            ) : (
+              <></>
+            )}
+          </div>
           <div className="user-info">
             <form>
               <div>
-                {userId && userId == id ? (
-                  <a className="edit-profile" onClick={() => setEditing(true)}>
-                    Change your profile <i class="fas fa-edit"></i>
-                  </a>
-                ) : (
-                  <>
-                    <a
-                      className="edit-profile"
-                      onClick={() => setEditing(true)}
-                    >
-                      Change your profile <i class="fas fa-edit"></i>
-                    </a>
-                  </>
-                )}
-
                 <label>ユーザ名</label>
                 <input
                   type="text"
-                  value={userInfo.name}
+                  value={userInfo.full_name}
                   disabled={!isEditing}
                   onChange={(e) => {
-                    setUserInfo({ ...userInfo, name: e.target.value });
+                    setUserInfo({ ...userInfo, full_name: e.target.value });
                   }}
                 />
               </div>
               <div>
-                <label>メール</label>
+                <label>生年月日</label>
                 <input
-                  type="email"
-                  value={userInfo.email}
+                  type="date"
+                  value={userInfo.date_of_birth}
                   disabled={!isEditing}
                   onChange={(e) => {
-                    setUserInfo({ ...userInfo, email: e.target.value });
+                    setUserInfo({ ...userInfo, date_of_birth: e.target.value });
                   }}
                 />
               </div>
@@ -106,10 +155,10 @@ const UserProfile = () => {
                 <label>携帯電話</label>
                 <input
                   type="tel"
-                  value={userInfo.tel}
+                  value={userInfo.phone_number}
                   disabled={!isEditing}
                   onChange={(e) => {
-                    setUserInfo({ ...userInfo, tel: e.target.value });
+                    setUserInfo({ ...userInfo, phone_number: e.target.value });
                   }}
                 />
               </div>
@@ -152,17 +201,34 @@ const UserProfile = () => {
                 <>
                   <div className="post">
                     <div className="post-header">
-                      <span className="author">ROAN</span>
+                      <span
+                        className="author"
+                        onClick={() => {
+                          navigate(`/profile/${blog.user_id}`);
+                        }}
+                      >
+                        ROAN
+                      </span>
                       <span className="likes">
-                        <i class="fa-regular fa-heart pointer"></i> 100
+                        <i class="fa-regular fa-heart pointer"></i>{' '}
+                        {blog.like_count}
                       </span>
                     </div>
                     <div className="post-time">12:57PM 26/10/2023</div>
                     <div className="post-content">
-                      <div className="base-comment">
-                        Hello this is a normal post
+                      <div className="base-comment">{blog.caption}</div>
+                      <div className="post-images">
+                        {console.log(blog.media.length >= 2)}
+                        {blog.media.length >= 2 ? (
+                          <UncontrolledExample media={blog.media} />
+                        ) : (
+                          <img
+                            className="d-block w-100"
+                            src="https://miro.medium.com/v2/resize:fit:600/1*YM9c6zMefXW8lHGX_yIy1A.png"
+                            alt="First slide"
+                          />
+                        )}
                       </div>
-                      <div className="post-image">[Image Placeholder]</div>
                     </div>
                   </div>
                 </>

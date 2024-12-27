@@ -1,0 +1,23 @@
+.carousel-container {
+  width: 100%;
+  height: max-content;
+}
+
+.carousel-item {
+  height: max-content !important;
+}
+
+.carousel-inner {
+  height: max-content !important;
+}
+
+.carousel {
+  height: max-content !important;
+} 
+
+.carousel-indicators button {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  height: 6px !important;
+  width: 6px !important;
+}
