@@ -318,19 +318,19 @@ const getAllUsers = async (req, res, next) => {
 };
 
 /**
- * Admin: Retrieves and sends a single user by ID.
+ * All: Retrieves profile of a user by ID
  */
-const getUserById = async (req, res, next) => {
+const getProfileById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const user = await User.findById(id).select('-password').populate('loved_restaurants', 'name address');
+        const profile = await User.findById(id).select('profile');
 
-        if (!user) {
+        if (!profile) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        res.status(200).json(user);
+        res.status(200).json(profile);
     } catch (error) {
         next(error);
     }
@@ -570,7 +570,7 @@ export {
     changePassword,
     registerAdmin,
     getAllUsers,
-    getUserById,
+    getProfileById,
     banUnbanUser,
     addLovedRestaurant,
     removeLovedRestaurant,
