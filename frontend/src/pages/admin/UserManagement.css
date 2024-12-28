@@ -1,0 +1,18 @@
+.main-content {
+    display: flex;
+    gap: 70px; /* Khoảng cách giữa Filter và Restaurant Items */
+    align-items: flex-start; /* Không kéo giãn các phần tử theo chiều cao */
+}
+
+.header-wrapper {
+    padding: 2em 52px 0px 52px;
+}
+
+.item-table {
+    width: 100%
+}
+
+.user-row {
+    display: flex;
+}
+
