@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import {Navigate, Route, Routes, useLocation} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'; // Đảm bảo import file CSS tổng quát
 import HomePage from './pages/home/HomePage';
@@ -10,7 +10,7 @@ import RestaurantDetail from './pages/restaurant/RestaurantDetail';
 import Header from './components/commons/Header';
 import Footer from './components/commons/Footer';
 import UpLoadPostPage from './pages/post/UploadPost';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import AdminHeader from './components/commons/admin/AdminHeader';
 import ReviewManagement from './pages/admin/ReviewManagement';
 import ThrottleExample from './components/ratings/RatingForm';
