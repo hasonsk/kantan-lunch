@@ -16,9 +16,21 @@ const formDataAPI = axios.create({
 });
 
 // Lấy danh sách tất cả post
-export const getAllPosts = async () => {
-  const response = await api.get('/posts');
-  return response.data;
+export const getAllPosts = async (option = {}) => {
+  try {
+    const { page = 1, limit = 10, type = 'Feedback', userId } = option;
+    const response = await api.get('/posts', {
+      params: {
+        page: page,
+        limit: limit,
+        type: type,
+        userId: userId, //this is mandatory
+      },
+    });
+    return response.data;
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 // Lấy thông tin chi tiết post theo ID

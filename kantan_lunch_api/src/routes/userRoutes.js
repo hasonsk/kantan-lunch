@@ -13,7 +13,7 @@ import {
     changePassword,
     registerAdmin,
     getAllUsers,
-    getUserById,
+    getProfileById,
     banUnbanUser,
     addLovedRestaurant,
     removeLovedRestaurant,
@@ -783,7 +783,7 @@ router.get(
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get a user by ID (Admin Only)
+ *     summary: Get profile by Id
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -791,18 +791,30 @@ router.get(
  *       - in: path
  *         name: id
  *         required: true
- *         description: The user ID
+ *         description: The Id of the user to retrieve
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: The user description by id.
+ *         description: The user profile by Username.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserProfile'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 profile:
+ *                   $ref: '#/components/schemas/Profile'
+ *             example:
+ *               _id: "6757fb6720cfeabef0328664"
+ *               profile:
+ *                 full_name: "Jane Doe"
+ *                 date_of_birth: "1992-07-20T00:00:00.000Z"
+ *                 phone_number: "+84911223344"
+ *                 avatar: "https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg"
  *       400:
- *         description: Invalid ID format.
+ *         description: Invalid Id format.
  *       401:
  *         description: Unauthorized.
  *       403:
@@ -812,13 +824,11 @@ router.get(
  */
 router.get(
     '/:id',
-    authenticate,
-    authorizeRoles('admin'), // Only admins can access this route
     [
         param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
     ],
     validate,
-    getUserById
+    getProfileById
 );
 
 /**
