@@ -35,10 +35,10 @@ function Login() {
     event.preventDefault();
     try {
       if (!validate()) return;
-
-      const data = await login({ email, password });
+      const data = { token: 'test' };
+      //const data = await login({ email, password });
       console.log('ログイン成功:', data);
-      dispatch(LogIn());
+      dispatch(LogIn({ value: true, rememberMe: rememberMe }));
       if (rememberMe) {
         localStorage.setItem('authToken', data.token);
       } else {
@@ -87,9 +87,7 @@ function Login() {
                           onChange={(e) => setEmail(e.target.value)}
                         />
                         {errors.email && (
-                          <small className="text-danger">
-                            {errors.email}
-                          </small>
+                          <small className="text-danger">{errors.email}</small>
                         )}
                       </div>
 

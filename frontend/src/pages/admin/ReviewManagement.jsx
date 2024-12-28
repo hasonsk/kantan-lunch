@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import './ReviewManagement.css';
 import postData from "./reviewData.jsx"
-import { getAllPosts } from '../../api/post';
+// import AdminSearchbar from "../../components/commons/admin/AdminSearchbar.jsx";
+import {getAllPosts} from '../../api/post';
+import AdminSearchbar from "../../components/commons/admin/AdminSearchbar.jsx";
 
 const ReviewManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -25,26 +27,26 @@ const ReviewManagement = () => {
     };
 
     useEffect(() => {
-         // fetchPosts();
+        fetchPosts();
     }, []);
 
-    // const renderStars = (rating) => {
-    //     const filledStars = Math.floor(rating);
-    //     const halfStar = rating % 1 >= 0.5 ? 1 : 0;
-    //     const emptyStars = 5 - filledStars - halfStar;
-    //
-    //     return (
-    //         <>
-    //             {[...Array(filledStars)].map((_, i) => (
-    //                 <span key={`full-${i}`} className="filled">★</span>
-    //             ))}
-    //             {halfStar > 0 && <span className="half-filled">★</span>}
-    //             {[...Array(emptyStars)].map((_, i) => (
-    //                 <span key={`empty-${i}`} className="empty">★</span>
-    //             ))}
-    //         </>
-    //     );
-    // };
+    const renderStars = (rating) => {
+        const filledStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+        const emptyStars = 5 - filledStars - halfStar;
+
+        return (
+            <>
+                {[...Array(filledStars)].map((_, i) => (
+                    <span key={`full-${i}`} className="filled">★</span>
+                ))}
+                {halfStar > 0 && <span className="half-filled">★</span>}
+                {[...Array(emptyStars)].map((_, i) => (
+                    <span key={`empty-${i}`} className="empty">★</span>
+                ))}
+            </>
+        );
+    };
 
     const handleDetailsClick = (postId) => {
         navigate(`/admin/post/${postId}`);
@@ -55,48 +57,45 @@ const ReviewManagement = () => {
     // );
 
     return (
-        <div className="post-list">
-            <div className="search-bar">
-                <p className="greeting-text">レビュー</p>
-                <div className="input-container">
-          <span className="search-icon">
-            <i className="fa fa-search"></i>
-          </span>
-                    <input
-                        type="text"
-                        placeholder="検索"
-                        className="search-input"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </div>
-
+        <div className="header-wrapper">
+            <AdminSearchbar
+                section="レビュー"
+                callback={setSearchQuery}
+                searchQuery=""
+            />
             <div className="main-content">
                 {postData.length > 0 ? (
-                    <div className="post-list">
+                    <div className="item-table">
                         {postData.map((post) => {
                             return (
-                                <div key={post.id} className="post-card">
-                                    <div className="post-header">
-                                        <div className="post-avatar">
-                                            <img src={post.media[0] || 'default-avatar.jpg'} alt="User Avatar"/>
+                                <div key={post.id} className="post-row">
+                                    <div className="user-info">
+                                        <div>
+                                            {post.user}
                                         </div>
-                                        <div className="post-user-info">
-                                            <h3>{post.user}</h3>
-                                            <p>総レビュー数: {post.reviewCount || 0}</p>
+                                        <div>
+                                            <img src={post.media[0]} height="160px"></img>
                                         </div>
                                     </div>
-                                    <div className="post-body">
-                                        <p className="post-date">{post.created}</p>
-                                        <p className="post-content">{post.content}</p>
-                                        <div className="post-footer">
-                                            <button className="reject-button">拒否する</button>
-                                            <button className="accept-button">受け入れる</button>
+                                    <div className="review-info">
+                                    <div className="review-info-top">
+                                            <div className="review-info-rating">
+                                                {renderStars(post.average_rating)}
+                                            </div>
+                                            <div className="review-info-date">
+                                                {post.created}
+                                            </div>
+                                        </div>
+                                        <div className="review-info-content">
+                                            {post.content}
+                                        </div>
+                                        <div className="review-info-btn">
+                                            <button onClick={() => handleDetailsClick(post.id)}>Accept</button>
+                                            <button onClick={() => handleDetailsClick(post.id)}>Decline</button>
                                         </div>
                                     </div>
                                 </div>
-                            );
+                            )
                         })}
                     </div>
                 ) : (
