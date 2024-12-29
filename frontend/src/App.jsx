@@ -18,6 +18,7 @@ import ErrorModal from './components/commons/Modal/Modal';
 import UserProfile from './pages/user/UserProfile';
 import RestaurantManagement from './pages/admin/Restaurantmanagement';
 import UncontrolledExample from './components/carousel';
+import UserManagement from "./pages/admin/UserManagement.jsx";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.value);
@@ -58,7 +59,7 @@ function App() {
           />
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/admin" element={<h1>Admin Page</h1>} />
-          <Route path="/admin/user" element={<h1>User Management</h1>} />
+          <Route path="/admin/user" element={<UserManagement />} />
           <Route path="/admin/review" element={<ReviewManagement />} />
           <Route path="/admin/menu" element={<RestaurantManagement />} />
         </Routes>
