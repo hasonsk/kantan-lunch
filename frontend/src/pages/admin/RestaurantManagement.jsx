@@ -44,25 +44,23 @@ const RestaurantManagement = () => {
 
     return (
         <div className="App">
-            <button onClick={() => {
+            <button className='btn btn-success' onClick={() => {
                 setEditRestaurant(null); // Reset dữ liệu chỉnh sửa
                 setShowModal(true);
-            }}>Tạo Nhà Hàng</button>
+            }}>レストランを作成</button>
 
             <table className="table table-striped table-bordered mt-4">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Tên Nhà Hàng</th>
-                        <th>Địa Chỉ</th>
-                        <th>Liên Hệ</th>
-                        <th>Thao Tác</th>
+                        <th>レストラン名</th>
+                        <th>住所</th>
+                        <th>連絡先</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
                     {restaurants.map((restaurant) => (
-                        <tr key={restaurant.id}>
-                            <td>{restaurant.id}</td>
+                        <tr key={restaurant._id}>
                             <td>{restaurant.name}</td>
                             <td>{restaurant.address}</td>
                             <td>{restaurant.phone_number}</td>
@@ -71,7 +69,7 @@ const RestaurantManagement = () => {
                                     className="btn btn-warning btn-sm me-2"
                                     onClick={() => handleEditRestaurant(restaurant)}
                                 >
-                                    Sửa
+                                    編集
                                 </button>
                             </td>
                         </tr>
