@@ -35,8 +35,8 @@ function Login() {
     event.preventDefault();
     try {
       if (!validate()) return;
-      const data = { token: 'test' };
-      //const data = await login({ email, password });
+      // const data = { token: 'test' };
+      const data = await login({ email, password });
       console.log('ログイン成功:', data);
       dispatch(LogIn({ value: true, rememberMe: rememberMe }));
       if (rememberMe) {
@@ -44,6 +44,7 @@ function Login() {
       } else {
         sessionStorage.setItem('authToken', data.token);
       }
+      localStorage.setItem('authToken', data.token);
       navigate('/');
     } catch (error) {
       console.error('ログインエラー:', error);

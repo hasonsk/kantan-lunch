@@ -1,303 +1,329 @@
-import { use, useEffect, useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import './UploadPost.jsx';
+import { useEffect, useState, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { createPost } from '../../api/post';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getRestaurantById, getRestaurants } from '../../api/restaurant';
+import { getDishesByRestaurantId } from '../../api/dish';
 import { hideError, showError } from '../../redux/errorSlice';
-import { getDishesByRestaurantId } from '../../api/dish.js';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Form, Button, Spinner, Alert, Card, Row, Col, ListGroup } from 'react-bootstrap';
 
-const UpLoadPostPage = () => {
-  const firstUpdate = useRef(true);
+const UploadPostPage = () => {
   const dispatch = useDispatch();
-  const { state } = useLocation();
-  const [restaurantSearch, setRestaurant] = useState('');
+  const navigate = useNavigate();
+  const { restaurantId } = useParams();
+
+  const [restaurantSearch, setRestaurantSearch] = useState('');
   const [dishSearch, setDishSearch] = useState('');
-  const [baseDish, setBaseDish] = useState([]);
-  const [dish, setDish] = useState([]);
-  const [filteredRestaurant, setFilteredRestaurant] = useState([]);
-  const [isVisble1, setIsVisible1] = useState(0);
-  const [isVisble2, setIsVisible2] = useState(0);
-  const [hover, setRatingHover] = useState(0);
-  const [fixed, isFixed] = useState(0);
-  const [previewPictures, setPreviewPicture] = useState([]);
-  const [textArea, setTextArea] = useState();
+  const [baseDishes, setBaseDishes] = useState([]);
+  const [filteredDishes, setFilteredDishes] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [selectedDish, setSelectedDish] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [previewPictures, setPreviewPictures] = useState([]);
+  const [content, setContent] = useState('');
   const [errMessage, setErrMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const timeoutRef = useRef(null);
 
   useEffect(() => {
-    console.log('An error occurred');
-    dispatch(showError(errMessage));
-  }, [errMessage]);
+    if (errMessage) {
+      dispatch(showError(errMessage));
+    }
+  }, [errMessage, dispatch]);
 
   useEffect(() => {
-    if (state) {
-      console.log('hi');
-
-      const restaurantFetch = async () => {
+    const fetchRestaurant = async () => {
+      if (restaurantId) {
         try {
-          const result = await getRestaurantById(state.restaurantId);
-
-          setRestaurant(result.name);
-          setIsVisible1(result._id);
-          setIsVisible2(0);
-          const dishes = await getDishesByRestaurantId(result._id);
-          setDish(dishes);
-          setBaseDish(dishes);
-        } catch (err) {
-          setErrMessage(err.message);
+          const restaurant = await getRestaurantById(restaurantId);
+          setSelectedRestaurant(restaurant);
+          const dishes = await getDishesByRestaurantId(restaurantId);
+          setBaseDishes(dishes.data);
+          setFilteredDishes(dishes.data);
+        } catch (error) {
+          setErrMessage(error.message);
         }
-      };
-      restaurantFetch();
-    }
-  }, []); //Set state if go from restaurant page
+      }
+    };
+    fetchRestaurant();
+  }, [restaurantId]);
 
-  const handleRestaurantChoose = async (e) => {
-    setRestaurant(e);
+  const handleRestaurantSearch = (value) => {
+    setRestaurantSearch(value);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(async () => {
-      console.log('User stopped typing:', restaurantSearch); //check
-      const queryObj = { search: e }; //get for query
-      console.log(queryObj);
+      if (value.trim() === '') {
+        setFilteredRestaurants([]);
+        return;
+      }
       try {
-        const resList = await getRestaurants(queryObj); //get restaurant based on search
-        console.log('Reslist:');
-        console.log(resList);
-        setFilteredRestaurant(resList);
-      } catch (err) {
-        console.log(err);
-        setErrMessage(err.message);
+        const resList = await getRestaurants({ search: value });
+        setFilteredRestaurants(resList);
+      } catch (error) {
+        setErrMessage(error.message);
       }
     }, 500);
-    setIsVisible1(0);
-    setIsVisible2(1);
   };
 
-  const handleRestaurantChoice = async (restaurant) => {
-    setRestaurant(restaurant.name);
-    setIsVisible1(restaurant._id);
-    setIsVisible2(0);
-    try {
-      const dishes = await getDishesByRestaurantId(restaurant._id);
-      setDish(dishes);
-      setBaseDish(dishes);
-    } catch (e) {
-      console.log(e);
-      setErrMessage(e.message);
+  const handleSelectRestaurant = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setRestaurantSearch(restaurant.name);
+    setFilteredRestaurants([]);
+    // Fetch dishes for selected restaurant
+    getDishesByRestaurantId(restaurant._id)
+      .then((dishes) => {
+        setBaseDishes(dishes);
+        setFilteredDishes(dishes);
+      })
+      .catch((error) => setErrMessage(error.message));
+  };
+
+  const handleDishSearch = (value) => {
+    setDishSearch(value);
+    if (value.trim() === '') {
+      setFilteredDishes(baseDishes || []);
+      return;
     }
-    setBaseDish(restaurant.dishes);
+    const filtered = (baseDishes || []).filter((dish) =>
+      dish.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredDishes(filtered);
+  };
+
+  const handleSelectDish = (dish) => {
+    setSelectedDish(dish);
+    setDishSearch(dish.name);
+    setFilteredDishes([]);
   };
 
   const handlePreviewPicture = (e) => {
-    const test = Array.from(e.target.files);
-    const imageUrls = test.map((picture) => URL.createObjectURL(picture));
-    console.log(imageUrls);
-    setPreviewPicture((prevPictures) => [imageUrls, ...prevPictures]);
+    const files = Array.from(e.target.files);
+    const imageUrls = files.map((file) => URL.createObjectURL(file));
+    setPreviewPictures([...previewPictures, ...imageUrls]);
   };
 
-  const handleSubmit = async () => {
-    console.log('hello');
+  const handleRemovePicture = (index) => {
+    const newPictures = [...previewPictures];
+    newPictures.splice(index, 1);
+    setPreviewPictures(newPictures);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedRestaurant || !content || !rating) {
+      setErrMessage('レストラン、内容、評価は必須です。');
+      return;
+    }
+    setLoading(true);
     const formData = new FormData();
+    formData.append('type', 'Feedback');
+    formData.append('content', content);
+    formData.append('restaurant_id', selectedRestaurant._id);
+    formData.append('rating', rating);
+    if (selectedDish) {
+      formData.append('dish_id', selectedDish._id);
+    }
     const fileInput = document.getElementById('fileInput');
     const files = Array.from(fileInput.files);
-    Array.from(files).forEach((file) => {
+    files.forEach((file) => {
       formData.append('media', file);
     });
-    formData.append('type', 'DishFeedback');
-    formData.append('restaurant_id', isVisble1);
-    formData.append('dish_id', isVisble2);
-    formData.append('rating', fixed);
-    formData.append('content', textArea);
+
     try {
       await createPost(formData);
-    } catch (e) {
-      setErrMessage(e.message);
-      console.log('Error: ' + errMessage);
+      setLoading(false);
+      navigate(`/restaurants/${selectedRestaurant._id}`);
+    } catch (error) {
+      setLoading(false);
+      setErrMessage(error.message);
     }
   };
 
   return (
-    <div id="formBlock">
-      <form>
-        <div className="formInput">
-          <h4 className="formInput">レストラン名</h4>
-          <div className="formInput">
-            <input
-              type="text"
-              placeholder="Restaurant Name"
-              id="resInput"
-              value={restaurantSearch}
-              onChange={(e) => {
-                handleRestaurantChoose(e.target.value);
-              }}
-            />
-          </div>
-          {restaurantSearch && !isVisble1 && (
-            <div
-              style={{
-                maxHeight: '200px',
-                overflowY: 'auto',
-                border: '1px solid #ccc',
-                marginTop: '10px',
-              }}
-            >
-              {filteredRestaurant.length > 0 ? (
-                filteredRestaurant.map((restaurant, index) => (
-                  <div
-                    key={index}
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={(e) => {
-                      handleRestaurantChoice(restaurant);
-                    }}
-                  >
-                    {restaurant.name} - {restaurant.average_rating} -
-                    {restaurant.address}
+    <div className="container mt-5 text-start" style={{ border: 'none' }}>
+      <Card>
+        <Card.Header as="h3">レビューを投稿</Card.Header>
+        <Card.Body>
+          {errMessage && <Alert variant="danger">{errMessage}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            {/* Chọn Nhà Hàng */}
+            {!restaurantId && (
+              <Form.Group className="mb-3" controlId="formRestaurant">
+                <Form.Label as="h4">レストラン名</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="レストラン名を入力してください"
+                  value={restaurantSearch}
+                  onChange={(e) => handleRestaurantSearch(e.target.value)}
+                />
+                {filteredRestaurants.length > 0 && (
+                  <div className="border rounded mt-1" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    {filteredRestaurants.map((restaurant) => (
+                      <div
+                        key={restaurant._id}
+                        className="p-2 hover-bg"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleSelectRestaurant(restaurant)}
+                      >
+                        <strong>{restaurant.name}</strong> - {restaurant.address} - ⭐ {restaurant.average_rating}
+                      </div>
+                    ))}
                   </div>
-                ))
-              ) : (
-                <div style={{ padding: '5px' }}>No results found</div>
-              )}
-            </div>
-          )}
-        </div>
-        <div onMouseLeave={() => setRatingHover(fixed)} className="formInput">
-          <h4 className="formInput">格付け</h4>
-          <div className="formInput">
-            <i
-              className={
-                hover > 0 ? 'fa-solid fa-star hover::' : 'fa-regular fa-star'
-              }
-              onMouseOver={() => setRatingHover(1)}
-              onClick={() => isFixed(1)}
-            ></i>
-            <i
-              className={hover > 1 ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-              onMouseOver={() => setRatingHover(2)}
-              onClick={() => isFixed(2)}
-            ></i>
-            <i
-              className={hover > 2 ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-              onMouseOver={() => setRatingHover(3)}
-              onClick={() => isFixed(3)}
-            ></i>
-            <i
-              className={hover > 3 ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-              onMouseOver={() => setRatingHover(4)}
-              onClick={() => isFixed(4)}
-            ></i>
-            <i
-              className={hover > 4 ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-              onMouseOver={() => setRatingHover(5)}
-              onClick={() => isFixed(5)}
-            ></i>
-          </div>
-        </div>
-        <div className="formInput">
-          <h4 className="formInput">何を食べた</h4>
-          <div className="formInput">
-            <input
-              type="text"
-              placeholder="Dish name"
-              id="disInput"
-              value={dishSearch}
-              onChange={(e) => {
-                setDishSearch(e.target.value);
-                setDish(
-                  dishSearch
-                    ? dish.filter((s) =>
-                        s.name.toLowerCase().includes(dishSearch.toLowerCase())
-                      )
-                    : baseDish
-                );
-                setIsVisible2(0);
-              }}
-            />
-          </div>
-          {dishSearch && !isVisble2 && (
-            <div
-              style={{
-                maxHeight: '200px',
-                overflowY: 'auto',
-                border: '1px solid #ccc',
-                marginTop: '10px',
-              }}
-            >
-              {dish.length > 0 ? (
-                dish.map((d, index) => (
-                  <div
-                    key={index}
-                    style={{ padding: '5px', cursor: 'pointer' }}
-                    onClick={(e) => {
-                      setDishSearch(d.name);
-
-                      setIsVisible2(d.id);
-                    }}
-                  >
-                    {d.name} - {d.price}
-                  </div>
-                ))
-              ) : (
-                <div style={{ padding: '5px' }}>No results found</div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="formInput">
-          <h4 className="formInput">コメントを聞く</h4>
-          <div className="formInput">
-            <textarea
-              placeholder="Start writing here"
-              rows={25}
-              value={textArea}
-              onChange={(e) => setTextArea(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="formInput">
-          <h4 className="formInput">Upload file(s)</h4>
-          <div className="formInput image-upload">
-            <label htmlFor="fileInput">
-              <i className="attach-doc fa-solid fa-upload"></i>
-            </label>
-            <input
-              type="file"
-              id="fileInput"
-              multiple
-              accept=".jpeg,.jpg,.jfif,.pjpeg,.pjp,.png"
-              onChange={(e) => handlePreviewPicture(e)}
-            />
-          </div>
-          <div className="previewProfilePic formInput">
-            {previewPictures ? (
-              previewPictures.map((picture, index) => (
-                <img
-                  key={index}
-                  className="picture"
-                  src={picture && picture}
-                ></img>
-              ))
-            ) : (
-              <></>
+                )}
+              </Form.Group>
             )}
-          </div>
-        </div>
-        <div className="formInput">
-          <input
-            className="formInput"
-            id="submitButton"
-            type="submit"
-            value="Post Blog"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          />
-        </div>
-      </form>
+
+            {/* Hiển thị thông tin Nhà Hàng nếu có restaurantId */}
+            {selectedRestaurant && (
+              <>
+                <h4>レストラン名</h4>
+                <Card className="mb-3">
+                  <Card.Body>
+                    <Row>
+                      <Col>
+                        <h5>{selectedRestaurant.name}</h5>
+                        <p>{selectedRestaurant.address}</p>
+                        <p>⭐ {selectedRestaurant.avg_rating}</p>
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </>
+            )}
+
+            {/* Đánh Giá */}
+            <Form.Group className="mb-3">
+              <Form.Label as="h4">格付け</Form.Label>
+              <div>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <i
+                    key={star}
+                    className={`fa-star ${star <= (hoverRating || rating) ? 'fas' : 'far'} text-warning`}
+                    style={{ cursor: 'pointer', fontSize: '1.5rem', marginRight: '5px' }}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRating(star)}
+                  ></i>
+                ))}
+              </div>
+            </Form.Group>
+
+            {/* Chọn Món Ăn */}
+            {selectedRestaurant && (
+              <Form.Group className="mb-3" controlId="formDish">
+                <Form.Label as="h4">何を食べた</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="料理名を入力してください（任意）"
+                  value={dishSearch}
+                  onChange={(e) => handleDishSearch(e.target.value)}
+                  className="mb-2"
+                />
+                {filteredDishes.length > 0 && (
+                  <ListGroup className="border rounded mt-1" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                    {filteredDishes.map((dish) => (
+                      <ListGroup.Item
+                        key={dish._id}
+                        action
+                        onClick={() => handleSelectDish(dish)}
+                        className="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <strong>{dish.name}</strong> - {dish.price} VNĐ
+                        </div>
+                        <i className="fa fa-chevron-right text-muted"></i>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                )}
+              </Form.Group>
+            )}
+
+            {/* Nội Dung Bài Viết */}
+            <Form.Group className="mb-3" controlId="formContent" style={{ height: '430px' }}>
+              <Form.Label as="h4">コメントを聞く</Form.Label>
+              <ReactQuill
+                id="editor"
+                theme="snow"
+                value={content}
+                onChange={setContent}
+                style={{ height: '350px' }}
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['link', 'image'],
+                    ['clean'],
+                  ],
+                }}
+              />
+            </Form.Group>
+
+            {/* Tải Lên Ảnh */}
+            <Form.Group className="my-3" controlId="formFile">
+              <Form.Label as="h4">画像を追加</Form.Label>
+              <Form.Control
+                id="fileInput"
+                type="file"
+                multiple
+                accept=".jpeg,.jpg,.jfif,.pjpeg,.pjp,.png"
+                onChange={handlePreviewPicture}
+              />
+            </Form.Group>
+
+            {/* Xem Trước Ảnh */}
+            {previewPictures.length > 0 && (
+              <Row className="mb-3">
+                {previewPictures.map((picture, index) => (
+                  <Col
+                    key={index}
+                    className="mb-3 position-relative"
+                    xs="auto"
+                    style={{ width: '200px' }}
+                  >
+                    <img
+                      src={picture}
+                      alt={`preview-${index}`}
+                      className="img-fluid rounded"
+                      style={{ width: '200px', height: '200px', objectFit: 'cover' }}
+                    />
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleRemovePicture(index)}
+                      style={{ position: 'absolute', top: '-10px', right: '0px', borderRadius: '50%' }}
+                    >
+                      &times;
+                    </Button>
+                  </Col>
+                ))}
+              </Row>
+            )}
+
+            {/* Nút Gửi Bài Viết */}
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                  {'提出中...'}
+                </>
+              ) : (
+                '提出'
+              )}
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
     </div>
   );
 };
 
-export default UpLoadPostPage;
+export default UploadPostPage;
