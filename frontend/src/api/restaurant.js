@@ -2,14 +2,9 @@ import { api } from './apiConfig.js';
 
 export const getRestaurants = async (queryParams = {}) => {
   try {
-    console.log('test at apis');
-
     const query = new URLSearchParams(queryParams).toString();
-    console.log(query);
-
     const response = await api.get(`/restaurants?${query}`);
-    console.log('responded');
-    return response;
+    return response.data;
   } catch (e) {
     console.log('Error in apis');
     console.log(e);

@@ -103,7 +103,10 @@ const PostCard = ({ post }) => {
       )}
 
       {/* Caption */}
-      <div className="post-caption">{post.content || post.caption || ""}</div>
+      <div
+        className="post-caption"
+        dangerouslySetInnerHTML={{ __html: post.content || post.caption || "" }}
+      ></div>
 
       {/* Media Gallery */}
       {renderMediaItems(post.media)}
