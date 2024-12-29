@@ -1,6 +1,5 @@
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import NodeGeocoder from 'node-geocoder';
-
 import User from '../models/userModel.js';
 import Restaurant from '../models/restaurantModel.js';
 import Dish from '../models/dishModel.js';
@@ -258,44 +257,42 @@ const seedLikes = async (userIds, postIds) => {
 
 const seedDB = async () => {
     try {
-        const userCount = await User.countDocuments();
-        const restaurantCount = await Restaurant.countDocuments();
+        // Seed Users
+        const existingUsers = await User.find();
+        if (existingUsers.length === 0) {
+            // Hash mật khẩu cho từng user
+            const hashedUsers = await Promise.all(
+                userSeedData.map(async (user) => {
+                    const salt = await bcrypt.genSalt(10);
+                    const hashedPassword = await bcrypt.hash(user.password, salt);
+                    return {
+                        ...user,
+                        password: hashedPassword,
+                    };
+                })
+            );
 
-        if (userCount > 0 || restaurantCount > 0) {
-            return;
+            const createdUsers = await User.insertMany(hashedUsers);
+            console.log('User seed data inserted');
+
+            // Seed Restaurants
+            const existingRestaurants = await Restaurant.find();
+            if (existingRestaurants.length === 0) {
+                // Gán admin_id cho các nhà hàng (sử dụng admin đầu tiên)
+                const admin = createdUsers.find(user => user.role === 'admin');
+                if (!admin) {
+                    throw new Error('Admin user not found');
+                }
+
+                const restaurantsWithAdmin = restaurantSeedData.map(rest => ({
+                    ...rest,
+                    admin_id: admin._id,
+                }));
+
+                await Restaurant.insertMany(restaurantsWithAdmin);
+                console.log('Restaurant seed data inserted');
+            } 
         }
-
-        const createdUserIds = await seedUsers();
-        console.log(`Created ${Object.keys(createdUserIds).length} users.`);
-
-        const createdRestaurantIds = await seedRestaurants(createdUserIds);
-        console.log(`Created ${Object.keys(createdRestaurantIds).length} restaurants.`);
-
-        const createdDisheIds = await seedDishes(createdRestaurantIds);
-        console.log(`Created ${Object.keys(createdDisheIds).length} dishes.`);
-
-        const createdPostIds = await seedPosts(createdUserIds, createdRestaurantIds, createdDisheIds);
-
-        const feedbackCount = Object.keys(createdPostIds.feedbackIds).length;
-        console.log(`Created ${feedbackCount} feedback posts.`);
-
-        const dishFeedbackCount = Object.keys(createdPostIds.dishFeedbackIds).length;
-        console.log(`Created ${dishFeedbackCount} dish feedback posts.`);
-
-        const commentCount = Object.keys(createdPostIds.commentIds).length;
-        console.log(`Created ${commentCount} comment posts.`);
-
-        // Aggregate Post IDs for Likes
-        const postIds = {
-            ...createdPostIds.feedbackIds,
-            ...createdPostIds.dishFeedbackIds,
-            ...createdPostIds.commentIds,
-        };
-
-        await seedLikes(createdUserIds, postIds);
-        console.log('Created likes.');
-
-        console.log('Seed Data Complete!');
     } catch (err) {
         console.error('Error seeding data:', err.message);
         process.exit(1);

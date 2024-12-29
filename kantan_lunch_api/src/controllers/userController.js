@@ -1,10 +1,8 @@
+// src/controllers/userController.js
+
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
-import Restaurant from '../models/restaurantModel.js';
-import crypto from 'crypto';
-import { mailConfig } from '../config/config.js';
-import nodemailer from 'nodemailer';
-import multer from 'multer';
 
 import { JWT_SECRET } from '../config/config.js';
 
@@ -60,7 +58,7 @@ const registerUser = async (req, res, next) => {
 
         const savedUser = await user.save();
 
-        // Generate JWT token
+        // Generate JWT
         const token = generateToken(savedUser._id, savedUser.role);
 
         res.status(201).json({
@@ -68,20 +66,9 @@ const registerUser = async (req, res, next) => {
             username: savedUser.username,
             email: savedUser.email,
             role: savedUser.role,
-            profile: savedUser.profile,
             token,
         });
     } catch (error) {
-        if (error instanceof multer.MulterError) {
-            // Handle Multer-specific errors
-            if (error.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({ message: 'File size exceeds the limit of 5MB.' });
-            }
-            return res.status(400).json({ message: error.message });
-        } else if (error.message === 'Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.') {
-            return res.status(400).json({ message: error.message });
-        }
-        // Handle other errors
         next(error);
     }
 };
@@ -95,7 +82,7 @@ const loginUser = async (req, res, next) => {
 
         // Validate user
         const user = await User.findOne({ email });
-        if (!user) {
+        if (!user || user.banned) {
             return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
@@ -168,31 +155,6 @@ const updateUserProfile = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Changes the password of the currently authenticated user.
- */
-const changePassword = async (req, res, next) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-
-        // Validate current password
-        const user = await User.findById(req.user._id);
-        const isMatch = await user.matchPassword(currentPassword);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid current password.' });
-        }
-
-        // Update password
-        user.password = newPassword;
-        await user.save();
-
-        res.status(200).json({ message: 'Password changed successfully.' });
-    }
-    catch (error) {
-        next(error);
-    }
-}
 
 /**
  * Admin: Registers a new admin user.
@@ -343,6 +305,11 @@ const banUnbanUser = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { banned } = req.body;
+
+        // // Validate ObjectId
+        // if (!mongoose.Types.ObjectId.isValid(id)) {
+        //     return res.status(400).json({ message: 'Invalid user ID format.' });
+        // }
 
         // Validate banned field
         if (banned === undefined) {
@@ -567,14 +534,8 @@ export {
     loginUser,
     getUserProfile,
     updateUserProfile,
-    changePassword,
     registerAdmin,
     getAllUsers,
     getProfileById,
     banUnbanUser,
-    addLovedRestaurant,
-    removeLovedRestaurant,
-    listLovedRestaurants,
-    sendCode,
-    verifyCode
 };

@@ -47,3 +47,18 @@ export const updateBanUser = async (id) => {
   const response = await api.delete(`/users/${id}/ban`);
   return response.data;
 };
+
+export const addLovedRestaurant = async (restaurantId) => {
+  const userId = localStorage.getItem('userId');
+  const data = {
+    restaurantId: restaurantId,
+  }
+  const response = await api.post(`/users/${userId}/loved-restaurants`, data);
+  return response.data;
+}
+
+export const removeLovedRestaurant = async (restaurantId) => {
+  const userId = localStorage.getItem('userId');
+  const response = await api.delete(`/users/${userId}/loved-restaurants?restaurantId=${restaurantId}`);
+  return response.data;
+}

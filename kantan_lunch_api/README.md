@@ -18,7 +18,20 @@
     npm install
     ```
 
-5. Tạo file `.env` trong thư mục `kantan_lunch_api` với nội dung tương tự như file `.env.example`
+5. Tạo file `.env` trong thư mục `kantan_lunch_api` với nội dung sau:
+    ```properties
+    PORT=3000
+    MONGO_URI=mongodb://root:example@localhost:27017/api_db?authSource=admin
+    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
+    ```
+
+    Hoặc
+    ```properties
+    PORT=3000
+    MONGO_URI=mongodb://root:example@mongo:27017/api_db?authSource=admin
+    JWT_SECRET=mysecretkey123456789 # Đặt key tuỳ chọn
+    ```
+    Nếu sử dụng Docker Compose.
 
 ### Chạy ứng dụng
 

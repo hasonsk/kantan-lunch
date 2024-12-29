@@ -1,0 +1,151 @@
+.community-wrapper {
+    max-width: 100%;
+    margin: 40px 50px;
+    font-family: Arial, sans-serif;
+    /* Không cần position relative nữa */
+}
+
+.community-content-wrapper {
+    padding: 30px 40px;
+    max-width: 800px;
+    min-width: 500px;
+    margin: 60px auto;
+    border: 1px dashed grey;
+}
+
+.community-content-wrapper:first-of-type {
+    margin-top: 60px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* Tạo hình tròn */
+    background-color: #ccc;
+    margin-right: 10px;
+    overflow: hidden; /* Ẩn phần ảnh vượt ra ngoài hình tròn */
+  }
+  
+  .profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Đảm bảo ảnh không bị méo và phủ hết diện tích hình tròn */
+  }
+  
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px dotted grey;
+    padding: 5px 50px;
+}
+
+.likes {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none; /* Ngăn việc chọn nội dung */
+    margin-left: 100px;
+}
+
+.heart-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.liked {
+    fill: red;
+}
+
+.likes-count {
+    font-size: 16px;
+}
+
+.main-content {
+    margin-bottom: 20px;
+}
+
+/* Cập nhật cho ảnh trong slider */
+.image-placeholder {
+    width: 100%;
+    height: 300px;
+    border: 2px solid #ccc;
+    object-fit: cover; /* Đảm bảo ảnh chiếm toàn bộ không gian mà không bị méo */
+    display: block;
+    background-color: #f0f0f0; /* Thêm màu nền nếu ảnh không tải */
+    transition: all 0.3s ease; /* Hiệu ứng chuyển động mượt mà */
+}
+
+/* Cập nhật lại footer */
+.footer {
+    text-align: left;
+}
+
+.text-placeholder {
+    font-size: 14px;
+    line-height: 2;
+    color: #555;
+    border: 1px solid rgb(203, 203, 203);
+    padding: 10px 20px;
+}
+
+/* Nút đóng góp ở góc trên bên trái */
+.contribute-button {
+    display: block; /* Đảm bảo nút không bị che bởi các phần tử khác */
+    margin-top: 20px; /* Tạo khoảng cách từ trên xuống */
+    background-color: grey; /* Màu nền nút */
+    color: white; /* Màu chữ trắng */
+    font-size: 16px;
+    font-weight: normal;
+    border: none;
+    cursor: pointer;
+    padding: 5px 50px;
+    text-align: center;
+}
+
+/* Cập nhật cho slider */
+.slider-container {
+    position: relative;
+    width: 100%;
+    margin: auto;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.slider-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 24px;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.slider-button:hover {
+    background: rgba(0, 0, 0, 0.7);
+}

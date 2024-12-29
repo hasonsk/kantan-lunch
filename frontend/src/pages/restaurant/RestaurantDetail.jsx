@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import restaurantData from "./restaurantData";
 import DishList from "../../components/dishes/DishList";
@@ -6,8 +6,6 @@ import PostList from "../../components/post/PostList";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import "./RestaurantDetail.css";
-import { getRestaurantById } from "../../api/restaurant";
-import { getAllPosts } from "../../api/post";
 
 const RestaurantDetails = ({ }) => {
   const [restaurant, setRestaurant] = useState([]);
@@ -68,42 +66,10 @@ const RestaurantDetails = ({ }) => {
     phone_number,
     open_time,
     close_time,
-    avg_rating,
+    average_rating,
+    dishes,
+    posts,
   } = restaurant;
-
-  const dishes = [
-    {
-      id: 1,
-      name: "グリルチキン",
-      media: ["https://via.placeholder.com/150"],
-      price: 12.99
-    },
-    {
-      id: 2,
-      name: "ビーガンサラダ",
-      media: ["https://via.placeholder.com/150"],
-      price: 9.99
-    },
-    {
-      id: 3,
-      name: "グリルチキン",
-      media: ["https://via.placeholder.com/150"],
-      price: 12.99
-    },
-    {
-      id: 4,
-      name: "ビーガンサラダ",
-      media: ["https://via.placeholder.com/150"],
-      price: 9.99
-    },
-  ]
-
-  useEffect(() => {
-    if (postAll?.data) {
-      const filtered = postAll.data.filter((post) => post.restaurant_id._id == id);
-      setPosts(filtered);
-    }
-  }, [postAll, id]);
 
   return (
     <div className="restaurant-detail">
@@ -120,7 +86,7 @@ const RestaurantDetails = ({ }) => {
         <div className="info">
           <div className="rating">
             <i className="fas fa-star"></i>{" "}
-            {avg_rating?.toFixed(1) || "N/A"} ({posts?.data?.total} reviews)
+            {average_rating?.toFixed(1) || "N/A"} ({posts.length} reviews)
           </div>
           <div className="address">
             <i className="fas fa-map-marker-alt"></i>

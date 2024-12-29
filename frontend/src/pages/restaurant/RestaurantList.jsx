@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import restaurantData from './restaurantData';
 import './RestaurantList.css';
-import { getAllRestaurants } from '../../api/restaurant';
 
 const RestaurantList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,9 +91,9 @@ const RestaurantList = () => {
           <label><input type="checkbox" /> Option 3</label>
           <label><input type="checkbox" /> Option 4</label>
         </div>
-        {restaurants.total > 0 ? (
+        {filteredRestaurants.length > 0 ? (
           <div className="restaurant-items">
-            {restaurants.data.map((restaurant) => {
+            {filteredRestaurants.map((restaurant) => {
               const image = restaurant.media?.[0] || 'fallback.jpg'; // Sử dụng ảnh đầu tiên hoặc ảnh mặc định
               return (
                 <div key={restaurant.id} className="restaurant-item">
@@ -106,14 +105,14 @@ const RestaurantList = () => {
                     <h3 className="restaurant-name">{restaurant.name}</h3>
                     <div className="restaurant-rating">
                       <div className="stars">
-                        {renderStars(restaurant.avg_rating || 0)}
+                        {renderStars(restaurant.average_rating || 0)}
                       </div>
-                      <span>{restaurant.avg_rating?.toFixed(1) || 'N/A'}</span>
+                      <span>{restaurant.average_rating?.toFixed(1) || 'N/A'}</span>
                     </div>
                     <p className="restaurant-comment">{restaurant.address}</p>
                     <button
                       className="details-button"
-                      onClick={() => handleDetailsClick(restaurant._id)}
+                      onClick={() => handleDetailsClick(restaurant.id)}
                     >
                       詳細を見たいですか
                     </button>

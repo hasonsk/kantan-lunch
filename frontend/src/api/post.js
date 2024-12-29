@@ -33,6 +33,15 @@ export const getAllPosts = async (option = {}) => {
   }
 };
 
+export const getPostsByRestaurantId = async (restaurantId) => {
+  try {
+    const response = await api.get(`/posts?restaurant_id=${restaurantId}`);
+    return response.data;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 // Lấy thông tin chi tiết post theo ID
 export const getPostById = async (id) => {
   const response = await api.get(`/posts/${id}`);

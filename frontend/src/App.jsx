@@ -57,6 +57,7 @@ function App() {
               )
             }
           />
+          
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/admin" element={<h1>Admin Page</h1>} />
           <Route path="/admin/user" element={<UserManagement />} />
