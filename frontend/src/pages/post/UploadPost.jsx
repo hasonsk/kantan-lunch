@@ -1,6 +1,5 @@
-import React, { use, useEffect, useState, useRef } from 'react';
+import { use, useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import restaurantData from '../restaurant/restaurantData';
 import './UploadPost.jsx';
 import { createPost } from '../../api/post';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -85,8 +84,8 @@ const UpLoadPostPage = () => {
       setDish(dishes);
       setBaseDish(dishes);
     } catch (e) {
-      console.log(err);
-      setErrMessage(err.message);
+      console.log(e);
+      setErrMessage(e.message);
     }
     setBaseDish(restaurant.dishes);
   };
