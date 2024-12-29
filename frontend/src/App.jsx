@@ -16,7 +16,7 @@ import ReviewManagement from './pages/admin/ReviewManagement';
 import ThrottleExample from './components/ratings/RatingForm';
 import ErrorModal from './components/commons/Modal/Modal';
 import UserProfile from './pages/user/UserProfile';
-import RestaurantManagement from './pages/admin/Restaurantmanagement';
+import RestaurantManagement from './pages/admin/RestaurantManagement.jsx';
 import UncontrolledExample from './components/carousel';
 import UserManagement from "./pages/admin/UserManagement.jsx";
 
@@ -57,7 +57,7 @@ function App() {
               )
             }
           />
-          
+
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/admin" element={<h1>Admin Page</h1>} />
           <Route path="/admin/user" element={<UserManagement />} />

@@ -9,7 +9,7 @@ const restaurantSchema = new Schema({
     required: true,
     trim: true,
     maxlength: 100,
-    unique: true, 
+    unique: true,
   },
   media: [{
     type: String,
@@ -73,7 +73,7 @@ const restaurantSchema = new Schema({
 });
 
 // Indexes
-restaurantSchema.index({ name: 1 }, { unique: true }); 
+// restaurantSchema.index({ name: 1 }, { unique: true });
 restaurantSchema.index({ admin_id: 1 });
 restaurantSchema.index({ location: '2dsphere' });
 
