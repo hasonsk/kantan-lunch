@@ -78,11 +78,6 @@ const userSchema = new Schema({
 }, {
   timestamps: true
 });
-
-// Indexes
-// userSchema.index({ email: 1 }, { unique: true });
-// userSchema.index({ username: 1 }, { unique: true });
-
 // Pre-save hook to hash passwords
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {

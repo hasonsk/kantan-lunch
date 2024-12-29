@@ -6,6 +6,7 @@ import { createPost } from '../../api/post';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getRestaurantById, getRestaurants } from '../../api/restaurant';
 import { hideError, showError } from '../../redux/errorSlice';
+import { getDishesByRestaurantId } from '../../api/dish.js';
 
 const UpLoadPostPage = () => {
   const firstUpdate = useRef(true);
@@ -39,10 +40,11 @@ const UpLoadPostPage = () => {
           const result = await getRestaurantById(state.restaurantId);
 
           setRestaurant(result.name);
-          setIsVisible1(result.id);
+          setIsVisible1(result._id);
           setIsVisible2(0);
-          setDish(result.dishes);
-          setBaseDish(result.dishes);
+          const dishes = await getDishesByRestaurantId(result._id);
+          setDish(dishes);
+          setBaseDish(dishes);
         } catch (err) {
           setErrMessage(err.message);
         }
@@ -72,6 +74,21 @@ const UpLoadPostPage = () => {
     }, 500);
     setIsVisible1(0);
     setIsVisible2(1);
+  };
+
+  const handleRestaurantChoice = async (restaurant) => {
+    setRestaurant(restaurant.name);
+    setIsVisible1(restaurant._id);
+    setIsVisible2(0);
+    try {
+      const dishes = await getDishesByRestaurantId(restaurant._id);
+      setDish(dishes);
+      setBaseDish(dishes);
+    } catch (e) {
+      console.log(err);
+      setErrMessage(err.message);
+    }
+    setBaseDish(restaurant.dishes);
   };
 
   const handlePreviewPicture = (e) => {
@@ -133,11 +150,7 @@ const UpLoadPostPage = () => {
                     key={index}
                     style={{ padding: '5px', cursor: 'pointer' }}
                     onClick={(e) => {
-                      setRestaurant(restaurant.name);
-                      setIsVisible1(restaurant.id);
-                      setIsVisible2(0);
-                      setDish(restaurant.dishes);
-                      setBaseDish(restaurant.dishes);
+                      handleRestaurantChoice(restaurant);
                     }}
                   >
                     {restaurant.name} - {restaurant.average_rating} -
@@ -260,7 +273,11 @@ const UpLoadPostPage = () => {
           <div className="previewProfilePic formInput">
             {previewPictures ? (
               previewPictures.map((picture, index) => (
-                <img key={index} className="picture" src={picture && picture}></img>
+                <img
+                  key={index}
+                  className="picture"
+                  src={picture && picture}
+                ></img>
               ))
             ) : (
               <></>

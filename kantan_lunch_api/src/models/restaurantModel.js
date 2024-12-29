@@ -73,7 +73,6 @@ const restaurantSchema = new Schema({
 });
 
 // Indexes
-// restaurantSchema.index({ name: 1 }, { unique: true });
 restaurantSchema.index({ admin_id: 1 });
 restaurantSchema.index({ location: '2dsphere' });
 
