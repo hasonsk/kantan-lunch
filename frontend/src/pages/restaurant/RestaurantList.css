@@ -24,6 +24,14 @@
   margin-left: 10px;
 }
 
+.search-btn {
+  padding: 5px 10px;
+  background-color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 /* Phần chính: Filter và Danh sách nhà hàng */
 .main-content {
   display: flex;
