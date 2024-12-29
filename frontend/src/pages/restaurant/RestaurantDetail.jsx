@@ -143,7 +143,7 @@ const RestaurantDetails = () => {
       <DishList dishes={dishes} />
 
       {/* Danh sách bài viết / review */}
-      <PostList posts={posts} />
+      <PostList posts={posts} restaurantId={id} />
     </div>
   );
 };

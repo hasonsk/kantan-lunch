@@ -1,7 +1,6 @@
-import React from 'react';
-import {Navigate, Route, Routes, useLocation} from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css'; // Đảm bảo import file CSS tổng quát
+import './App.css';
 import HomePage from './pages/home/HomePage';
 import Login from './pages/session/Login';
 import Signup from './pages/session/Signup';
@@ -9,8 +8,8 @@ import RestaurantList from './pages/restaurant/RestaurantList';
 import RestaurantDetail from './pages/restaurant/RestaurantDetail';
 import Header from './components/commons/Header';
 import Footer from './components/commons/Footer';
-import UpLoadPostPage from './pages/post/UploadPost';
-import {useSelector} from 'react-redux';
+import UploadPostPage from './pages/post/UploadPost';
+import { useSelector } from 'react-redux';
 import AdminHeader from './components/commons/admin/AdminHeader';
 import ReviewManagement from './pages/admin/ReviewManagement';
 import ThrottleExample from './components/ratings/RatingForm';
@@ -24,13 +23,15 @@ function App() {
   const isLoggedIn = useSelector((state) => state.user.value);
   const showModal = useSelector((state) => state.error.value);
   let location = useLocation();
+  
   return (
     <div>
-      {/* Header luôn xuất hiện trừ khi login/signup*/}
+      {/* Header luôn xuất hiện trừ khi login/signup hoặc admin */}
       {location.pathname !== '/login' &&
         location.pathname !== '/signup' &&
         !location.pathname.startsWith('/admin') && <Header />}
       {location.pathname.startsWith('/admin') && <AdminHeader />}
+      
       <main>
         {/* Các route chính */}
         <Routes>
@@ -40,7 +41,30 @@ function App() {
           <Route path="/restaurant-list" element={<RestaurantList />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} /> RestaurantManagement
+          <Route path="/signup" element={<Signup />} />
+          
+          {/* Route cho UploadPost với và không có restaurantId */}
+          <Route
+            path="/restaurants/:restaurantId/write-post"
+            element={
+              isLoggedIn ? (
+                <UploadPostPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/write-post"
+            element={
+              isLoggedIn ? (
+                <UploadPostPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          
           <Route
             path="/admin/restaurant-management"
             element={<RestaurantManagement />}
@@ -50,10 +74,9 @@ function App() {
             path="/restaurants/write-post"
             element={
               isLoggedIn ? (
-                <UpLoadPostPage />
+                <UploadPostPage />
               ) : (
-                //<Navigate to="/signin" replace />
-                <UpLoadPostPage />
+                <Navigate to="/login" replace />
               )
             }
           />
@@ -65,10 +88,13 @@ function App() {
           <Route path="/admin/menu" element={<RestaurantManagement />} />
         </Routes>
       </main>
+      
       {/* Footer luôn xuất hiện trừ khi login/signup */}
       {location.pathname !== '/login' && location.pathname !== '/signup' && (
         <Footer />
       )}
+      
+      {/* Modal lỗi */}
       {showModal ? <ErrorModal /> : null}
     </div>
   );

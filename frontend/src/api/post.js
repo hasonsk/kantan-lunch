@@ -50,6 +50,9 @@ export const getPostById = async (id) => {
 
 // Tạo mới một post
 export const createPost = async (data) => {
+  // attch the token
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+  formDataAPI.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   const response = await formDataAPI.post('/posts', data);
   return response.data;
 };

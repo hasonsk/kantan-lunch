@@ -95,11 +95,11 @@ const Header = () => {
           お気に入りの飲食店
         </NavLink>
         <NavLink
-          to="/comment"
+          to="/write-post"
           className={({ isActive }) =>
             `sub-nav-link ${isActive ? 'active' : ''}`
           }
-          onClick={() => handleLinkClick('/comment')}
+          onClick={() => handleLinkClick('/write-post')}
         >
           評価を書く
         </NavLink>

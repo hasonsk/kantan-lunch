@@ -35,7 +35,7 @@ export default [
       ],
       // Giảm mức độ các quy tắc khác
       'no-unused-vars': 'warn',
-      'no-console': 'warn',
+      'no-console': 'off',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
     },
