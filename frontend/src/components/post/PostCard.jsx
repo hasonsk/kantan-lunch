@@ -7,6 +7,14 @@ const PostCard = ({ post }) => {
     setLiked(!liked);
   };
 
+  // Kiểm tra nếu post không tồn tại hoặc post.media không phải mảng
+  if (!post) {
+    return null; 
+  }
+
+  // post.user_id thường là object => ta dùng user_id?.username
+  const username = post.user_id?.username || "Anonymous User";
+
   return (
     <li className="post-card">
       {/* Header: User info & Actions */}
@@ -17,22 +25,24 @@ const PostCard = ({ post }) => {
             alt="User"
             className="user-avatar"
           />
-          <span className="user-name">User {post.user_id}</span>
+          <span className="user-name">{username}</span>
         </div>
         <div className="post-actions">
           <i
             className={`fas fa-heart ${liked ? "liked" : ""}`}
             onClick={handleLikeClick}
           ></i>
-          {/* <span className="like-count">{post.like_list.length}</span> */}
+          <span className="like-count">{post.like_count}</span>
         </div>
       </div>
 
-      {/* Caption */}
-      <div className="post-caption">{post.caption}</div>
+      {/* Caption (nếu có) */}
+      <div className="post-caption">
+        {post.content || post.caption || ""}
+      </div>
 
-      {/* Images */}
-      {post.media.length > 0 && (
+      {/* Images (nếu có) */}
+      {Array.isArray(post.media) && post.media.length > 0 && (
         <div className="post-images">
           {post.media.map((image, index) => (
             <img

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import restaurantData from './restaurantData';
 import './RestaurantList.css';
+import { getAllRestaurants } from '../../api/restaurant';
 
 const RestaurantList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,8 +13,18 @@ const RestaurantList = () => {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
-      const data = await getAllRestaurants(searchQuery);
-      console.log(data);
+      const response = await getAllRestaurants(searchQuery);
+      // response có dạng:
+      // {
+      //   total: number,
+      //   page: number,
+      //   limit: number,
+      //   totalPages: number,
+      //   data: [...danh sách nhà hàng...]
+      // }
+      // Ta chỉ cần lấy mảng data (danh sách nhà hàng) để hiển thị
+      const { data } = response;
+      console.log('Fetched data:', response);
       setRestaurants(data);
       setLoading(false);
     } catch (err) {
@@ -25,8 +35,13 @@ const RestaurantList = () => {
 
   useEffect(() => {
     fetchRestaurants();
+    // eslint-disable-next-line
   }, [searchQuery]);
 
+  /**
+   * Hàm render sao đánh giá (rating) cho mỗi nhà hàng.
+   *  - rating: số điểm trung bình của nhà hàng.
+   */
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5 ? 1 : 0;
@@ -49,9 +64,22 @@ const RestaurantList = () => {
     navigate(`/restaurants/${restaurantId}`);
   };
 
-  const filteredRestaurants = restaurantData.filter((restaurant) =>
+  /**
+   * Lọc danh sách nhà hàng dựa trên searchQuery
+   */
+  const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Nếu đang loading
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  // Nếu có lỗi
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
     <div className="restaurant-list">
@@ -91,12 +119,17 @@ const RestaurantList = () => {
           <label><input type="checkbox" /> Option 3</label>
           <label><input type="checkbox" /> Option 4</label>
         </div>
+
         {filteredRestaurants.length > 0 ? (
           <div className="restaurant-items">
             {filteredRestaurants.map((restaurant) => {
-              const image = restaurant.media?.[0] || 'fallback.jpg'; // Sử dụng ảnh đầu tiên hoặc ảnh mặc định
+              // Nếu restaurant.media tồn tại thì lấy ảnh đầu tiên, không thì dùng fallback
+              const image = restaurant.media && restaurant.media.length > 0
+                ? restaurant.media[0]
+                : 'fallback.jpg';
+
               return (
-                <div key={restaurant.id} className="restaurant-item">
+                <div key={restaurant._id} className="restaurant-item">
                   <div
                     className="restaurant-image"
                     style={{ backgroundImage: `url(${image})` }}
@@ -105,14 +138,18 @@ const RestaurantList = () => {
                     <h3 className="restaurant-name">{restaurant.name}</h3>
                     <div className="restaurant-rating">
                       <div className="stars">
-                        {renderStars(restaurant.average_rating || 0)}
+                        {renderStars(restaurant.avg_rating || 0)}
                       </div>
-                      <span>{restaurant.average_rating?.toFixed(1) || 'N/A'}</span>
+                      <span>
+                        {restaurant.avg_rating
+                          ? restaurant.avg_rating.toFixed(1)
+                          : 'N/A'}
+                      </span>
                     </div>
                     <p className="restaurant-comment">{restaurant.address}</p>
                     <button
                       className="details-button"
-                      onClick={() => handleDetailsClick(restaurant.id)}
+                      onClick={() => handleDetailsClick(restaurant._id)}
                     >
                       詳細を見たいですか
                     </button>

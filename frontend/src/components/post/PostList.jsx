@@ -2,18 +2,26 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PostCard from './PostCard';
 
-const PostList = ({ posts }) => {
+const PostList = ({ posts, restaurantId }) => {
   const postsPerPage = 3;
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
+  // Tính tổng số trang
   const totalPages = Math.ceil(posts.length / postsPerPage);
+
+  // Cắt ra mảng bài viết cho trang hiện tại
   const currentPosts = posts.slice(
     (currentPage - 1) * postsPerPage,
     currentPage * postsPerPage
   );
 
-  const changePage = (newPage) => setCurrentPage(newPage);
+  // Đổi trang
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
 
   return (
     <div className="post-list-container">
@@ -22,24 +30,27 @@ const PostList = ({ posts }) => {
         <button
           type="button"
           className="btn btn-primary btn-rounded"
-          data-mdb-ripple-init
           onClick={() =>
-            navigate(`/restaurants/write-post`, {
-              state: { restaurantId: posts[0]?._id },
-            })
+            navigate(`/restaurants/${restaurantId}/write-post`)
           }
         >
           貢献したいですか？
         </button>
       </div>
+
       <ul className="post-list">
+        {/* Nếu không có bài viết nào, totalPages = 0 */}
         {totalPages === 0 ? (
-          <li>まだ投稿がありません。</li> // Message when there are no posts
+          <li>まだ投稿がありません。</li>
         ) : (
-          currentPosts.map((post) => <PostCard key={post._id} post={post} />)
+          currentPosts.map((post) => {
+            return <PostCard key={post._id} post={post} />;
+          })
         )}
       </ul>
-      {totalPages > 0 && ( // Only show pagination if there are posts
+
+      {/* Chỉ hiển thị pagination khi có ít nhất 1 bài viết */}
+      {totalPages > 0 && (
         <div className="pagination">
           <button
             disabled={currentPage === 1}
@@ -54,7 +65,6 @@ const PostList = ({ posts }) => {
             disabled={currentPage === totalPages}
             onClick={() => changePage(currentPage + 1)}
           >
-            {' '}
             &rarr;
           </button>
         </div>
