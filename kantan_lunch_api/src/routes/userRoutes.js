@@ -1,5 +1,3 @@
-// src/routes/userRoutes.js
-
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
@@ -12,10 +10,16 @@ import {
     loginUser,
     getUserProfile,
     updateUserProfile,
+    changePassword,
     registerAdmin,
     getAllUsers,
     getProfileById,
     banUnbanUser,
+    addLovedRestaurant,
+    removeLovedRestaurant,
+    listLovedRestaurants,
+    sendCode,
+    verifyCode,
 } from '../controllers/userController.js';
 
 const router = Router();
@@ -191,7 +195,7 @@ const uploadAvatar = createUploadMiddleware({
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -276,6 +280,7 @@ const uploadAvatar = createUploadMiddleware({
  */
 router.post(
     '/register',
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -305,16 +310,6 @@ router.post(
             .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerUser
@@ -898,6 +893,268 @@ router.put(
     ],
     validate,
     banUnbanUser
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   post:
+ *     summary: Add a restaurant to the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - restaurantId
+ *             properties:
+ *               restaurantId:
+ *                 type: string
+ *                 description: Restaurant ID to add
+ *             example:
+ *               restaurantId: "674eed54edd49b6af0d2a0de"
+ *     responses:
+ *       200:
+ *         description: Restaurant added to loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ *   delete:
+ *     summary: Remove a restaurant from the user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Restaurant ID to remove
+ *     responses:
+ *       200:
+ *         description: Restaurant removed from loved restaurants.
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User or Restaurant not found.
+ */
+
+router.post(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        body('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    addLovedRestaurant
+);
+
+router.delete(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('restaurantId')
+            .isMongoId()
+            .withMessage('Restaurant ID must be a valid MongoDB ObjectId'),
+    ],
+    validate,
+    removeLovedRestaurant
+);
+
+/**
+ * @swagger
+ * /users/{id}/loved_restaurants:
+ *   get:
+ *     summary: List a user's loved restaurants
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of loved restaurants.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Restaurant'
+ *       400:
+ *         description: Invalid input.
+ *       404:
+ *         description: User not found.
+ */
+
+router.get(
+    '/:id/loved_restaurants',
+    authenticate,
+    authorizeRoles('user'),
+    [
+        param('id')
+            .isMongoId()
+            .withMessage('User ID must be a valid MongoDB ObjectId'),
+        query('page')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Page must be a positive integer'),
+        query('limit')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Limit must be a positive integer'),
+    ],
+    validate,
+    listLovedRestaurants
+);
+
+/**
+ * @swagger
+ * /users/send-code:
+ *   post:
+ *     summary: Send a verification code to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *             required:
+ *               - email
+ *             example:
+ *               email: user@example.com
+ *     responses:
+ *       200:
+ *         description: Code has been sent to the user's email successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code sent successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/send-code',
+    [body('email').isEmail().withMessage('Invalid email')],
+    validate, // Middleware validate lỗi từ express-validator
+    sendCode
+);
+
+/**
+ * @swagger
+ * /users/verify-code:
+ *   post:
+ *     summary: Verify the code sent to the user's email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *             required:
+ *               - email
+ *               - code
+ *             example:
+ *               email: user@example.com
+ *               code: "123456"
+ *     responses:
+ *       200:
+ *         description: Code has been verified successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Code verified successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       404:
+ *         description: User not found.
+ */
+router.post(
+    '/verify-code',
+    [
+        body('email').isEmail().withMessage('Invalid email'),
+        body('code').isLength({ min: 6, max: 6 }).withMessage('Code must be 6 digits'),
+    ],
+    validate,
+    verifyCode
 );
 
 export default router;

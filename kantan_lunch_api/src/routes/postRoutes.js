@@ -11,6 +11,8 @@ import {
     updatePost,
     deletePost,
     listPosts,
+    approvePost,
+    rejectPost,
 } from '../controllers/postController.js';
 
 const router = Router();
@@ -59,20 +61,17 @@ const router = Router();
  *         reviewed:
  *           type: boolean
  *           description: Whether the post has been reviewed
- *         restaurant_id:
- *           type: string
- *           description: The ID of the related restaurant (for Feedback and DishFeedback)
  *         rating:
  *           type: number
  *           minimum: 1
  *           maximum: 5
  *           description: Rating given (for Feedback and DishFeedback)
+ *         restaurant_id:
+ *           type: string
+ *           description: The ID of the related restaurant (for Feedback and DishFeedback)
  *         dish_id:
  *           type: string
  *           description: The ID of the related dish (for DishFeedback)
- *         feedback_id:
- *           type: string
- *           description: The ID of the parent Feedback post (for DishFeedback)
  *         post_id:
  *           type: string
  *           description: The ID of the parent Post (for Comment)
@@ -85,10 +84,11 @@ const router = Router();
  *           format: date-time
  *           description: The date and time the post was last updated
  *       example:
- *         _id: 60d5ec49f9a1b14a3c8d4567
+ *         _id: 6745a7b592b1f9540756a80f
  *         type: "Feedback"
  *         caption: "Great service and ambiance!"
  *         media: ["https://example.com/image1.jpg"]
+ *         content: "このレストランで素晴らしい体験をしました！料理は美味しく、スタッフも親切でした。"
  *         user_id: "60d5ec49f9a1b14a3c8d1234"
  *         like_count: 10
  *         reviewed: true
@@ -117,13 +117,9 @@ const uploadPostMedia = createUploadMiddleware({
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - type
- *               - caption
- *               - media
  *             properties:
  *               type:
  *                 type: string
@@ -138,7 +134,7 @@ const uploadPostMedia = createUploadMiddleware({
  *                 type: array
  *                 items:
  *                   type: string
- *                   format: uri
+ *                   format: binary
  *               restaurant_id:
  *                 type: string
  *                 description: The ID of the related restaurant (for Feedback).
@@ -172,14 +168,15 @@ const uploadPostMedia = createUploadMiddleware({
  *         description: Bad request.
  *       401:
  *         description: Unauthorized.
+ *       403:
+ *         description: User is banned or not authorized.
  *       404:
  *         description: Related resource not found.
- *       409:
- *         description: Duplicate field value entered.
  */
 router.post(
     '/',
     authenticate,
+    uploadPostMedia,
     [
         body('type')
             .notEmpty()
@@ -191,9 +188,9 @@ router.post(
             .withMessage('content is required for Post'),
         // Conditional validations based on type
         body('restaurant_id')
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
+            .if(body('type').isIn(['Feedback']))
             .notEmpty()
-            .withMessage('restaurant_id is required for Feedback and DishFeedback')
+            .withMessage('restaurant_id is required for Feedback')
             .isMongoId()
             .withMessage('restaurant_id must be a valid MongoDB ObjectId'),
         body('rating')
@@ -208,12 +205,6 @@ router.post(
             .withMessage('dish_id is required for DishFeedback')
             .isMongoId()
             .withMessage('dish_id must be a valid MongoDB ObjectId'),
-        body('feedback_id')
-            .if(body('type').equals('DishFeedback'))
-            .notEmpty()
-            .withMessage('feedback_id is required for DishFeedback')
-            .isMongoId()
-            .withMessage('feedback_id must be a valid MongoDB ObjectId'),
         body('post_id')
             .if(body('type').equals('Comment'))
             .notEmpty()
@@ -273,7 +264,7 @@ router.get(
  *       - in: path
  *         name: id
  *         required: true
- *         description: The post ID
+ *         description: The ID of the post to update.
  *         schema:
  *           type: string
  *     requestBody:
@@ -285,6 +276,10 @@ router.get(
  *             properties:
  *               caption:
  *                 type: string
+ *                 description: A brief caption for the post.
+ *               content:
+ *                 type: string
+ *                 description: The content of the post.
  *               media:
  *                 type: array
  *                 items:
@@ -295,12 +290,7 @@ router.get(
  *                 type: number
  *                 minimum: 1
  *                 maximum: 5
- *               dish_id:
- *                 type: string
- *               feedback_id:
- *                 type: string
- *               post_id:
- *                 type: string
+ *                 description: The rating given in the feedback, ranging from 1 to 5.
  *             example:
  *               caption: "Updated caption for the post."
  *               content: "Updated content for the post."
@@ -336,10 +326,6 @@ router.put(
         param('id')
             .isMongoId()
             .withMessage('id must be a valid MongoDB ObjectId'),
-        body('type')
-            .optional()
-            .isIn(['Feedback', 'DishFeedback', 'Comment'])
-            .withMessage('type must be Feedback, DishFeedback, or Comment'),
         body('caption')
             .optional()
             .isLength({ max: 500 })
@@ -348,24 +334,8 @@ router.put(
             .optional(),
         body('rating')
             .optional()
-            .if(body('type').isIn(['Feedback', 'DishFeedback']))
             .isInt({ min: 1, max: 5 })
             .withMessage('rating must be an integer between 1 and 5'),
-        body('dish_id')
-            .optional()
-            .if(body('type').equals('DishFeedback'))
-            .isMongoId()
-            .withMessage('dish_id must be a valid MongoDB ObjectId'),
-        body('feedback_id')
-            .optional()
-            .if(body('type').equals('DishFeedback'))
-            .isMongoId()
-            .withMessage('feedback_id must be a valid MongoDB ObjectId'),
-        body('post_id')
-            .optional()
-            .if(body('type').equals('Comment'))
-            .isMongoId()
-            .withMessage('post_id must be a valid MongoDB ObjectId'),
     ],
     validate,
     updatePost
@@ -463,6 +433,11 @@ router.delete(
  *         schema:
  *           type: string
  *         description: Filter by parent post ID (for comments)
+ *       - in: query
+ *         name: reviewed
+ *         schema:
+ *           type: boolean
+ *         description: Filter by reviewed status
  *     responses:
  *       200:
  *         description: A list of posts.
@@ -519,9 +494,105 @@ router.get(
             .optional()
             .isMongoId()
             .withMessage('post_id must be a valid MongoDB ObjectId'),
+        query('reviewed')
+            .optional()
+            .isBoolean()
+            .withMessage('reviewed must be a boolean'),
     ],
     validate,
     listPosts
+);
+
+/**
+ * @swagger
+ * /posts/{id}/approve:
+ *   put:
+ *     summary: Approve a post (Admin only)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The post ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The post was approved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Post approved successfully.
+ *       400:
+ *         description: Invalid ID format.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden.
+ *       404:
+ *         description: Post not found.
+ */
+router.put(
+    '/:id/approve',
+    authenticate,
+    authorizeRoles('admin'),
+    param('id')
+        .isMongoId()
+        .withMessage('ID must be a valid MongoDB ObjectId'),
+    validate,
+    approvePost
+);
+
+/**
+ * @swagger
+ * /posts/{id}/reject:
+ *   put:
+ *     summary: Reject a post (Admin only)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The post ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The post was rejected successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Post rejected successfully.
+ *       400:
+ *         description: Invalid ID format.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden.
+ *       404:
+ *         description: Post not found.
+ */
+router.put(
+    '/:id/reject',
+    authenticate,
+    authorizeRoles('admin'),
+    param('id')
+        .isMongoId()
+        .withMessage('ID must be a valid MongoDB ObjectId'),
+    validate,
+    rejectPost
 );
 
 export default router;
