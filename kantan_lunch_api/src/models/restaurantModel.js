@@ -9,7 +9,7 @@ const restaurantSchema = new Schema({
     required: true,
     trim: true,
     maxlength: 100,
-    unique: true, 
+    unique: true,
   },
   media: [{
     type: String,

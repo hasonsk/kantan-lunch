@@ -7,7 +7,6 @@ const PostList = ({ posts, restaurantId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
-  // Tính tổng số trang
   const totalPages = Math.ceil(posts.length / postsPerPage);
 
   // Cắt ra mảng bài viết cho trang hiện tại
@@ -25,19 +24,16 @@ const PostList = ({ posts, restaurantId }) => {
 
   return (
     <div className="post-list-container">
-      <div className="post-header">
-        <h2>レビュー</h2>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h2 className="mb-0">レビュー</h2>
         <button
           type="button"
           className="btn btn-primary btn-rounded"
-          onClick={() =>
-            navigate(`/restaurants/${restaurantId}/write-post`)
-          }
+          onClick={() => navigate(`/restaurants/${restaurantId}/write-post`)}
         >
           貢献したいですか？
         </button>
       </div>
-
       <ul className="post-list">
         {/* Nếu không có bài viết nào, totalPages = 0 */}
         {totalPages === 0 ? (
