@@ -1,5 +1,3 @@
-// src/models/restaurantModel.js
-
 import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
@@ -11,6 +9,7 @@ const restaurantSchema = new Schema({
     required: true,
     trim: true,
     maxlength: 100,
+    unique: true, 
   },
   media: [{
     type: String,
@@ -27,6 +26,17 @@ const restaurantSchema = new Schema({
     required: true,
     trim: true,
     maxlength: 200,
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    }
   },
   phone_number: {
     type: String,
@@ -52,10 +62,20 @@ const restaurantSchema = new Schema({
   },
 }, {
   timestamps: true,
+  toJSON: {
+    transform: (doc, ret) => {
+      if (ret.location && ret.location.coordinates) {
+        ret.location = ret.location.coordinates;
+      }
+      return ret;
+    }
+  }
 });
 
 // Indexes
+restaurantSchema.index({ name: 1 }, { unique: true }); 
 restaurantSchema.index({ admin_id: 1 });
+restaurantSchema.index({ location: '2dsphere' });
 
 // Static method to calculate and update avg_rating
 restaurantSchema.statics.updateAvgRating = async function(restaurantId) {

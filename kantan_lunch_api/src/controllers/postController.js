@@ -2,8 +2,7 @@ import mongoose from 'mongoose';
 import multer from 'multer';
 import Post from '../models/postModel.js';
 import Restaurant from '../models/restaurantModel.js';
-import Dish from '../models/dishModel.js'; // Giả sử bạn có model Dish
-import User from '../models/userModel.js';
+import Dish from '../models/dishModel.js';
 
 /**
  * Tạo một Post mới
@@ -28,17 +27,23 @@ const createPost = async (req, res, next) => {
         // Kiểm tra các trường bắt buộc dựa trên loại Post
         switch (type) {
             case 'Feedback':
-            case 'DishFeedback':
                 if (!restaurant_id) {
-                    return res.status(400).json({ message: 'restaurant_id is required for Feedback and DishFeedback.' });
-                }
-                if (rating === undefined) { 
-                    return res.status(400).json({ message: 'rating is required for Feedback and DishFeedback.' });
+                    return res.status(400).json({ message: 'restaurant_id is required for Feedback.' });
                 }
                 // Kiểm tra xem Restaurant tồn tại
                 const restaurant = await Restaurant.findById(restaurant_id);
                 if (!restaurant) {
                     return res.status(404).json({ message: 'Restaurant not found.' });
+                }
+                break;
+            case 'DishFeedback':
+                if (!dish_id) {
+                    return res.status(400).json({ message: 'dish_id is required for DishFeedback.' });
+                }
+                // Kiểm tra xem Dish tồn tại
+                const dish = await Dish.findById(dish_id);
+                if (!dish) {
+                    return res.status(404).json({ message: 'Dish not found.' });
                 }
                 break;
             case 'Comment':
@@ -66,11 +71,11 @@ const createPost = async (req, res, next) => {
             content,
             media,
             user_id,
-            restaurant_id: type === 'Feedback' || type === 'DishFeedback' ? restaurant_id : undefined,
-            rating: type === 'Feedback' || type === 'DishFeedback' ? rating : undefined,
+            restaurant_id: type === 'Feedback' ? restaurant_id : undefined,
             dish_id: type === 'DishFeedback' ? dish_id : undefined,
-            feedback_id: type === 'DishFeedback' ? feedback_id : undefined,
+            rating: type === 'Feedback' || type === 'DishFeedback' ? rating : undefined,
             post_id: type === 'Comment' ? post_id : undefined,
+            reviewed,
         });
 
         const savedPost = await newPost.save();
@@ -223,7 +228,7 @@ const deletePost = async (req, res, next) => {
  */
 const listPosts = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id } = req.query;
+        const { page = 1, limit = 10, type, user_id, restaurant_id, dish_id, post_id, reviewed = 'true' } = req.query;
 
         const query = {};
 
@@ -254,12 +259,15 @@ const listPosts = async (req, res, next) => {
             }
             query.post_id = post_id;
         }
+        if (reviewed === 'false' && (!req.user || req.user.role !== 'admin')) {
+            return res.status(403).json({ message: 'Forbidden: Only admin can view unreviewed posts.' });
+        }
+        query.reviewed = reviewed === 'true';
 
         const posts = await Post.find(query)
             .populate('user_id', 'username email')
             .populate('restaurant_id', 'name address')
             .populate('dish_id', 'name description')
-            .populate('feedback_id', 'caption')
             .populate('post_id', 'caption')
             .skip((page - 1) * limit)
             .limit(parseInt(limit))
@@ -280,10 +288,54 @@ const listPosts = async (req, res, next) => {
     }
 };
 
+/**
+ * Approve a post by ID.
+ */
+const approvePost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = true;
+        await post.save();
+
+        res.status(200).json({ message: 'Post approved successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Reject a post by ID.
+ */
+const rejectPost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found.' });
+        }
+
+        post.reviewed = false;
+        await post.save();
+
+        res.status(200).json({ message: 'Post rejected successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     createPost,
     getPost,
     updatePost,
     deletePost,
     listPosts,
+    approvePost,
+    rejectPost,
 };
