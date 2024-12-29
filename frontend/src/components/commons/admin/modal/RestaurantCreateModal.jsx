@@ -90,7 +90,7 @@ const RestaurantCreateModal = ({ show, handleClose, addRestaurant, updateRestaur
       })),
     };
     if(editRestaurant){
-      data.id = editRestaurant.id;
+      data.id = editRestaurant._id;
       updateRestaurant(data);
       console.log(data);
     }else
