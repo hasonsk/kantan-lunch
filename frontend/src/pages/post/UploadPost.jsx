@@ -65,7 +65,7 @@ const UploadPostPage = () => {
       }
       try {
         const resList = await getRestaurants({ search: value });
-        setFilteredRestaurants(resList);
+        setFilteredRestaurants(resList.data);
       } catch (error) {
         setErrMessage(error.message);
       }
@@ -172,7 +172,7 @@ const UploadPostPage = () => {
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleSelectRestaurant(restaurant)}
                       >
-                        <strong>{restaurant.name}</strong> - {restaurant.address} - ⭐ {restaurant.average_rating}
+                        <strong>{restaurant.name}</strong> - {restaurant.address} - ⭐ {restaurant.avg_rating}
                       </div>
                     ))}
                   </div>
@@ -183,7 +183,7 @@ const UploadPostPage = () => {
             {/* Hiển thị thông tin Nhà Hàng nếu có restaurantId */}
             {selectedRestaurant && (
               <>
-                <h4>レストラン名</h4>
+                <h4>選択されたレストラン</h4>
                 <Card className="mb-3">
                   <Card.Body>
                     <Row>
@@ -250,7 +250,6 @@ const UploadPostPage = () => {
             <Form.Group className="mb-3" controlId="formContent" style={{ height: '430px' }}>
               <Form.Label as="h4">コメントを聞く</Form.Label>
               <ReactQuill
-                id="editor"
                 theme="snow"
                 value={content}
                 onChange={setContent}
@@ -268,10 +267,10 @@ const UploadPostPage = () => {
             </Form.Group>
 
             {/* Tải Lên Ảnh */}
-            <Form.Group className="my-3" controlId="formFile">
+            <Form.Group className="my-3" controlId="fileInput">
               <Form.Label as="h4">画像を追加</Form.Label>
               <Form.Control
-                id="fileInput"
+                // id="fileInput"
                 type="file"
                 multiple
                 accept=".jpeg,.jpg,.jfif,.pjpeg,.pjp,.png"

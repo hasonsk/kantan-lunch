@@ -53,6 +53,7 @@
 .sub-nav .active {
   border: 1px solid grey;
   font-weight: bold;
+  border-radius: 5px;
 }
 
 .sub-nav-link {
