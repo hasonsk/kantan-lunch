@@ -1,0 +1,38 @@
+.main-content {
+    display: flex;
+    gap: 70px; /* Khoảng cách giữa Filter và Restaurant Items */
+    align-items: flex-start; /* Không kéo giãn các phần tử theo chiều cao */
+}
+
+.header-wrapper {
+    padding: 2em 52px 0px 52px;
+}
+
+.item-table {
+    width: 100%
+}
+
+.post-row {
+    border: 1px solid #e0e0e0;
+    display: flex;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.user-info {
+    flex: 4;
+}
+
+.review-info {
+    flex: 6;
+}
+
+.review-info-content {
+    min-height: 160px;
+}
+
+.review-info-btn {
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 16px;
+}

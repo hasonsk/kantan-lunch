@@ -6,6 +6,26 @@ import './RestaurantList.css';
 const RestaurantList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchRestaurants = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllRestaurants(searchQuery);
+      console.log(data);
+      setRestaurants(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, [searchQuery]);
 
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating);
@@ -52,7 +72,7 @@ const RestaurantList = () => {
       </div>
 
       <div className="main-content">
-      <div className="filter-section">
+        <div className="filter-section">
           <p>Text</p>
           <label><input type="checkbox" /> Option 1</label>
           <label><input type="checkbox" /> Option 2</label>

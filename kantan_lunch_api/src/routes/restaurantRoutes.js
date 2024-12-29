@@ -5,6 +5,7 @@ import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js'; // Import your authentication middleware
 import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
   fetchAllRestaurants,
@@ -216,6 +217,14 @@ router.get(
   fetchRestaurantById
 );
 
+// Create an upload middleware for restaurants
+const uploadRestaurantMedia = createUploadMiddleware({
+  fieldName: 'media',
+  folder: 'restaurants',
+  multiple: true,
+  maxCount: 5
+});
+
 /**
  * @swagger
  * /restaurants:
@@ -229,7 +238,42 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Phở Thìn Bờ Hồ"
+ *               address:
+ *                 type: string
+ *                 example: "13 Lò Đúc, Phạm Đình Hổ, Hai Bà Trưng, Hà Nội"
+ *               phone_number:
+ *                 type: string
+ *                 example: "+84-24-3821-2709"
+ *               open_time:
+ *                 type: string
+ *                 example: "06:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
+ *               close_time:
+ *                 type: string
+ *                 example: "21:30"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
+ *             required:
+ *               - name
+ *               - address
+ *               - phone_number
+ *               - open_time
+ *               - close_time
+ *               - media
+ *           encoding:
+ *             media:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: The restaurant was successfully created.
@@ -250,6 +294,7 @@ router.post(
   '/',
   authenticate, // Ensure only authenticated users can create restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia,
   [
     body('name')
       .notEmpty()
@@ -302,12 +347,41 @@ router.post(
  *         description: The restaurant ID
  *         schema:
  *           type: string
+ *         example: "60d21b4667d0d8992e610c85"
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/RestaurantInput'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Bún Chả Hương Liên"
+ *               address:
+ *                 type: string
+ *                 example: "24 Lê Văn Hưu, Hai Bà Trưng, Hà Nội"
+ *               phone_number:
+ *                 type: string
+ *                 example: "+84-24-3943-4106"
+ *               open_time:
+ *                 type: string
+ *                 example: "07:00"
+ *                 description: "Opening time in HH:MM format (e.g., 09:00)"
+ *               close_time:
+ *                 type: string
+ *                 example: "22:00"
+ *                 description: "Closing time in HH:MM format (e.g., 21:00)"
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: "Ảnh nhà hàng (JPG, PNG)"
+ *             encoding:
+ *               media:
+ *                 style: form
+ *                 explode: true
  *     responses:
  *       200:
  *         description: The restaurant was updated successfully.
@@ -330,6 +404,7 @@ router.put(
   '/:id',
   authenticate, // Ensure only authenticated users can modify restaurants
   authorizeRoles('admin'), // Only admins can access this route
+  uploadRestaurantMedia, // Handle file uploads for media
   [
     param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
     body('name')
@@ -345,21 +420,13 @@ router.put(
       .matches(/^\+?[1-9]\d{1,14}$/)
       .withMessage('Please provide a valid phone number in E.164 format'),
     body('open_time')
-      .notEmpty()
-      .withMessage('Open time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('open_time must be in HH:mm format (e.g., 09:00).'),
     body('close_time')
-      .notEmpty()
-      .withMessage('Close time is required')
+      .optional()
       .matches(/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/)
       .withMessage('close_time must be in HH:mm format (e.g., 09:00).'),
-    body('media')
-      .optional()
-      .isArray({ min: 1 })
-      .withMessage('Media must be a non-empty array of URLs')
-      .custom((media) => media.every(url => typeof url === 'string'))
-      .withMessage('All media items must be valid URLs'),
   ],
   validate,
   modifyRestaurant

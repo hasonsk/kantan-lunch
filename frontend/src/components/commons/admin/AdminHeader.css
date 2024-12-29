@@ -1,0 +1,74 @@
+/* AdminHeader.css */
+
+.header-wrapper {
+    padding: 2em 45px 0px 45px;
+}
+
+/* Đảm bảo rằng header chiếm toàn bộ chiều rộng */
+.header {
+    display: flex;
+    justify-content: space-between; /* Căn lề trái cho logo và lề phải cho các icon */
+    align-items: center; /* Căn giữa các phần tử trong header */
+    padding-bottom: 30px; /* Khoảng cách trong header */
+    background-color: white; /* Màu nền của header */
+}
+
+.logo {
+    width: 200px;
+    height: 40px;
+    border: 1px solid grey;
+    text-align: center;
+    line-height: 40px;
+    font-size: 18px;
+}
+
+/* Logo bên trái */
+.logo img {
+    width: 150px; /* Điều chỉnh kích thước logo */
+}
+
+/* Các icon bên phải */
+.icons {
+    display: flex;
+    gap: 30px; /* Khoảng cách giữa các icon */
+}
+
+.icon {
+    color: grey;
+    font-size: 24px; /* Tăng kích thước icon */
+    text-decoration: none;
+}
+
+.icon:hover {
+    color: #ffc107; /* Màu vàng khi hover */
+}
+
+/* Thêm kiểu dáng cho thanh nav dưới header */
+.sub-nav {
+    display: flex;
+    gap: 30px;
+    padding: 10px 0;
+}
+
+.sub-nav .active {
+    border: 1px solid grey;
+    font-weight: bold;
+}
+
+.sub-nav-link {
+    padding: 5px 20px;
+    color: black;
+    font-size: 15px;
+    text-decoration: none;
+    /* margin: 0 20px;  */
+}
+
+.sub-nav-link:hover {
+    color: #ffc107; /* Màu vàng khi hover */
+}
+
+.display-flex-30 {
+    display: flex;
+    gap: 10px;
+}
+  

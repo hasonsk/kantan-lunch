@@ -4,7 +4,8 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import validate from '../middlewares/validate.js';
 import authenticate from '../middlewares/authenticate.js';
-import authorizeRoles from '../middlewares/authorizeRoles.js'; // Middleware to check user roles
+import authorizeRoles from '../middlewares/authorizeRoles.js';
+import createUploadMiddleware from '../middlewares/upload.js';
 
 import {
     registerUser,
@@ -13,7 +14,7 @@ import {
     updateUserProfile,
     registerAdmin,
     getAllUsers,
-    getUserById,
+    getProfileById,
     banUnbanUser,
 } from '../controllers/userController.js';
 
@@ -38,12 +39,9 @@ const router = Router();
  *         - date_of_birth
  *         - phone_number
  *       properties:
- *         first_name:
+ *         full_name:
  *           type: string
- *           description: User's first name
- *         last_name:
- *           type: string
- *           description: User's last name
+ *           description: User's full name
  *         date_of_birth:
  *           type: string
  *           format: date
@@ -55,8 +53,7 @@ const router = Router();
  *           type: string
  *           description: URL to the user's avatar image
  *       example:
- *         first_name: "John"
- *         last_name: "Doe"
+ *         full_name: "John Doe"
  *         date_of_birth: "1990-01-01"
  *         phone_number: "+1234567890"
  *         avatar: "https://example.com/avatar.jpg"
@@ -85,8 +82,7 @@ const router = Router();
  *         email: "johndoe@example.com"
  *         password: "securepassword"
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -121,8 +117,7 @@ const router = Router();
  *         role: "user"
  *         banned: false
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -171,8 +166,7 @@ const router = Router();
  *         role: "user"
  *         banned: false
  *         profile:
- *           first_name: "John"
- *           last_name: "Doe"
+ *           full_name: "John Doe"
  *           date_of_birth: "1990-01-01"
  *           phone_number: "+1234567890"
  *           avatar: "https://example.com/avatar.jpg"
@@ -180,6 +174,13 @@ const router = Router();
  *         createdAt: "2024-04-27T14:00:00.000Z"
  *         updatedAt: "2024-04-27T14:00:00.000Z"
  */
+
+// Create an upload middleware for user avatars
+const uploadAvatar = createUploadMiddleware({
+    fieldName: 'avatar',
+    folder: 'avatars',
+    multiple: false,
+});
 
 /**
  * @swagger
@@ -192,7 +193,40 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: johndoe
+ *               email:
+ *                 type: string
+ *                 example: "johndoe@example.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: securepassword
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               full_name:
+ *                 type: string
+ *                 example: John Doe
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *                 example: 1990-01-01
+ *               phone_number:
+ *                 type: string
+ *                 example: "+1234567890"
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - full_name
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: User registered successfully.
@@ -209,6 +243,19 @@ const router = Router();
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     full_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                       format: date
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *                       format: string
  *                 token:
  *                   type: string
  *               example:
@@ -216,6 +263,11 @@ const router = Router();
  *                 username: "johndoe"
  *                 email: "johndoe@example.com"
  *                 role: "user"
+ *                 profile:
+ *                   full_name: "John Doe"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -240,27 +292,17 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
+        body('full_name')
             .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
-            .notEmpty()
-            .withMessage('First name is required')
+            .withMessage('Full name is required')
             .isString()
-            .withMessage('First name must be a string'),
-        body('profile.last_name')
-            .notEmpty()
-            .withMessage('Last name is required')
-            .isString()
-            .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
-            .notEmpty()
-            .withMessage('Date of birth is required')
+            .withMessage('Full name must be a string'),
+        body('date_of_birth')
+            .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
-            .notEmpty()
-            .withMessage('Phone number is required')
+        body('phone_number')
+            .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
         body('profile.avatar')
@@ -372,33 +414,24 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               full_name:
  *                 type: string
- *               email:
+ *               date_of_birth:
  *                 type: string
- *               password:
+ *                 format: date
+ *               phone_number:
  *                 type: string
- *               profile:
- *                 $ref: '#/components/schemas/Profile'
- *               loved_restaurants:
- *                 type: array
- *                 items:
- *                   type: string
- *             example:
- *               username: "johnupdated"
- *               email: "johnupdated@example.com"
- *               password: "newsecurepassword"
- *               profile:
- *                 first_name: "Johnny"
- *                 last_name: "Doe"
- *                 date_of_birth: "1990-01-01"
- *                 phone_number: "+1234567890"
- *                 avatar: "https://example.com/newavatar.jpg"
- *               loved_restaurants: ["60d5ec49f9a1b14a3c8d1234"]
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       200:
  *         description: User profile updated successfully.
@@ -410,51 +443,24 @@ router.get(
  *         description: Bad request.
  *       401:
  *         description: Unauthorized.
- *       409:
- *         description: Email or username already in use by another user.
  */
 router.put(
     '/profile',
     authenticate,
+    uploadAvatar,
     [
-        body('username')
-            .optional()
-            .isLength({ min: 3, max: 30 })
-            .withMessage('Username must be between 3 and 30 characters'),
-        body('email')
-            .optional()
-            .isEmail()
-            .withMessage('Invalid email address'),
-        body('password')
-            .optional()
-            .isLength({ min: 6 })
-            .withMessage('Password must be at least 6 characters'),
-        body('profile.first_name')
+        body('full_name')
             .optional()
             .isString()
-            .withMessage('First name must be a string'),
-        body('profile.last_name')
-            .optional()
-            .isString()
-            .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+            .withMessage('Full name must be a string'),
+        body('date_of_birth')
             .optional()
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .optional()
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     updateUserProfile
@@ -462,9 +468,9 @@ router.put(
 
 /**
  * @swagger
- * /users/register-admin:
- *   post:
- *     summary: Register a new admin user
+ * /users/change-password:
+ *   put:
+ *     summary: Update the current user's password
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -473,7 +479,104 @@ router.put(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserRegisterInput'
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: The user's current password
+ *               newPassword:
+ *                 type: string
+ *                 description: The user's new password
+ *             example:
+ *               currentPassword: "oldpassword123"
+ *               newPassword: "newpassword456"
+ *     responses:
+ *       200:
+ *         description: Password updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully.
+ *       400:
+ *         description: Bad request.
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
+router.put(
+    '/change-password',
+    authenticate,
+    [
+        body('currentPassword')
+            .notEmpty()
+            .withMessage('Current password is required'),
+        body('newPassword')
+            .notEmpty()
+            .withMessage('New password is required')
+            .isLength({ min: 6 })
+            .withMessage('New password must be at least 6 characters long'),
+    ],
+    validate,
+    changePassword
+);
+
+/**
+ * @swagger
+ * /users/register-admin:
+ *   post:
+ *     summary: Register a new admin user (Admin Only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: adminuser1
+ *               email:
+ *                 type: string
+ *                 example: "adminuser1@example.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: securepassword
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               full_name:
+ *                 type: string
+ *                 example: Admin User
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *                 example: 1990-01-01
+ *               phone_number:
+ *                 type: string
+ *                 example: "+1234567890"
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *               - full_name
+ *               - date_of_birth
+ *               - phone_number
+ *           encoding:
+ *             avatar:
+ *               style: form
+ *               explode: true
  *     responses:
  *       201:
  *         description: Admin registered successfully.
@@ -490,13 +593,29 @@ router.put(
  *                   type: string
  *                 role:
  *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     full_name:
+ *                       type: string
+ *                     date_of_birth:
+ *                       type: string
+ *                     phone_number:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
  *                 token:
  *                   type: string
  *               example:
  *                 _id: 60d5ec49f9a1b14a3c8d4567
- *                 username: "adminuser"
+ *                 username: "admin"
  *                 email: "admin@example.com"
  *                 role: "admin"
+ *                 profile:
+ *                   full_name: "Admin User"
+ *                   date_of_birth: "1990-01-01"
+ *                   phone_number: "+1234567890"
+ *                   avatar: "https://cloudinary.com/avatar.jpg"
  *                 token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *       400:
  *         description: Bad request.
@@ -505,12 +624,13 @@ router.put(
  *       403:
  *         description: Forbidden.
  *       409:
- *         description: User with this email or username already exists.
+ *         description: User already exists.
  */
 router.post(
     '/register-admin',
-    authenticate, 
-    authorizeRoles('admin'), 
+    authenticate,
+    authorizeRoles('admin'),
+    uploadAvatar,
     [
         body('username')
             .notEmpty()
@@ -527,39 +647,21 @@ router.post(
             .withMessage('Password is required')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
-        body('profile')
+        body('full_name')
             .notEmpty()
-            .withMessage('Profile information is required'),
-        body('profile.first_name')
-            .notEmpty()
-            .withMessage('First name is required')
+            .withMessage('Full name is required')
             .isString()
-            .withMessage('First name must be a string'),
-        body('profile.last_name')
-            .notEmpty()
-            .withMessage('Last name is required')
-            .isString()
-            .withMessage('Last name must be a string'),
-        body('profile.date_of_birth')
+            .withMessage('Full name must be a string'),
+        body('date_of_birth')
             .notEmpty()
             .withMessage('Date of birth is required')
             .isISO8601()
             .withMessage('Date of birth must be a valid date'),
-        body('profile.phone_number')
+        body('phone_number')
             .notEmpty()
             .withMessage('Phone number is required')
             .matches(/^\+?[1-9]\d{1,14}$/)
             .withMessage('Please provide a valid phone number in E.164 format'),
-        body('profile.avatar')
-            .optional()
-            .isURL()
-            .withMessage('Avatar must be a valid URL'),
-        body('loved_restaurants')
-            .optional()
-            .isArray()
-            .withMessage('Loved restaurants must be an array of Restaurant IDs')
-            .custom((arr) => arr.every(id => mongoose.Types.ObjectId.isValid(id)))
-            .withMessage('All loved_restaurant IDs must be valid MongoDB ObjectIds'),
     ],
     validate,
     registerAdmin
@@ -686,7 +788,7 @@ router.get(
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Get a user by ID (Admin Only)
+ *     summary: Get profile by Id
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -694,18 +796,30 @@ router.get(
  *       - in: path
  *         name: id
  *         required: true
- *         description: The user ID
+ *         description: The Id of the user to retrieve
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: The user description by id.
+ *         description: The user profile by Username.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/UserProfile'
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 profile:
+ *                   $ref: '#/components/schemas/Profile'
+ *             example:
+ *               _id: "6757fb6720cfeabef0328664"
+ *               profile:
+ *                 full_name: "Jane Doe"
+ *                 date_of_birth: "1992-07-20T00:00:00.000Z"
+ *                 phone_number: "+84911223344"
+ *                 avatar: "https://res.cloudinary.com/dtjl7hjbe/image/upload/v1733547284/default-avatar_vqnong.jpg"
  *       400:
- *         description: Invalid ID format.
+ *         description: Invalid Id format.
  *       401:
  *         description: Unauthorized.
  *       403:
@@ -715,13 +829,11 @@ router.get(
  */
 router.get(
     '/:id',
-    authenticate,
-    authorizeRoles('admin'), // Only admins can access this route
     [
         param('id').isMongoId().withMessage('ID must be a valid MongoDB ObjectId'),
     ],
     validate,
-    getUserById
+    getProfileById
 );
 
 /**

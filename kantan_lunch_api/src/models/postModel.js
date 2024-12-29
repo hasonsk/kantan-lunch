@@ -9,12 +9,6 @@ const postSchema = new Schema({
     enum: ['Feedback', 'DishFeedback', 'Comment'],
     required: true,
   },
-  caption: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 500,
-  },
   media: [{
     type: String,
     required: true,
