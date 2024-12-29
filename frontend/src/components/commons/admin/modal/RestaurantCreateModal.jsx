@@ -1,13 +1,14 @@
 // Cập nhật import
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import DishCreateModal from './DishCreateModal';
 import "./style.css";
 import { createRestaurant } from '../../../../api/restaurant';
 import { createDish } from '../../../../api/dish';
+import { use } from 'react';
 
-const RestaurantCreateModal = ({ show, handleClose }) => {
+const RestaurantCreateModal = ({ show, handleClose, addRestaurant, updateRestaurant, editRestaurant }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [showAddMenuModal, setShowAddMenuModal] = useState(false);
   const [images, setImages] = useState([]);
@@ -17,6 +18,18 @@ const RestaurantCreateModal = ({ show, handleClose }) => {
   const [openTime, setOpenTime] = useState('');
   const [closeTime, setCloseTime] = useState('');
   const [editItem, setEditItem] = useState(null);
+
+  useEffect(() => {
+    if (editRestaurant) {
+      setName(editRestaurant.name);
+      setAddress(editRestaurant.address);
+      setPhone(editRestaurant.phone_number);
+      setOpenTime(editRestaurant.open_time);
+      setCloseTime(editRestaurant.close_time);
+      setImages(editRestaurant.media);
+      setMenuItems(editRestaurant.menu_items?editRestaurant.menu_items:[]);
+    }
+  }, [editRestaurant]);
 
   // Thêm món ăn vào menu
   const addMenuItem = (item) => {
@@ -73,50 +86,57 @@ const RestaurantCreateModal = ({ show, handleClose }) => {
       menu_items: menuItems.map((item) => ({
         name: item.name,
         price: Number(item.price),
+        images: item.images,
       })),
     };
+    if(editRestaurant){
+      data.id = editRestaurant.id;
+      updateRestaurant(data);
+      console.log(data);
+    }else
+    addRestaurant(data);
+    handleClose();
+    // try {
+    //   const response = await createRestaurant(data);
+    //   if (response.status === 201 || response.status === 200) {
+    //     menuItems.map((item) => {
+    //       const dish = {
+    //         name: item.name,
+    //         price: item.price,
+    //         images: item.images,
+    //         restaurant: response.data.id,
+    //       }
+    //       try {
+    //         const dishResponse = createDish(dish);
+    //         if (dishResponse.status === 201 || dishResponse.status === 200) {
+    //           console.log('料理の作成に成功しました。');
+    //           setMenuItems([]);
+    //           setEditItem(null);
+    //         } else {
+    //           console.error('料理の作成中にエラーが発生しました。');
+    //           alert('料理を作成できませんでした。');
+    //         }
+    //       } catch (error) {
+    //         console.error('データ送信エラー:', error);
+    //         alert('APIとの接続に失敗しました。');
+    //       }
+    //     });
 
-    try {
-      const response = await createRestaurant(data);
-      if (response.status === 201 || response.status === 200) {
-        menuItems.map((item) => {
-          const dish = {
-            name: item.name,
-            price: item.price,
-            images: item.images,
-            restaurant: response.data.id,
-          }
-          try {
-            const dishResponse = createDish(dish);
-            if (dishResponse.status === 201 || dishResponse.status === 200) {
-              console.log('料理の作成に成功しました。');
-              setMenuItems([]);
-              setEditItem(null);
-            } else {
-              console.error('料理の作成中にエラーが発生しました。');
-              alert('料理を作成できませんでした。');
-            }
-          } catch (error) {
-            console.error('データ送信エラー:', error);
-            alert('APIとの接続に失敗しました。');
-          }
-        });
-
-        alert('レストランの作成に成功しました。');
-        handleClose(); // モーダルを閉じる
-        setImages([]);
-        setName('');
-        setAddress('');
-        setPhone('');
-        setOpenTime('');
-        setCloseTime('');
-      } else {
-        alert('レストランの作成中にエラーが発生しました。');
-      }
-    } catch (error) {
-      console.error('データ送信エラー:', error);
-      alert('APIとの接続に失敗しました。');
-    }
+    //     alert('レストランの作成に成功しました。');
+    //     handleClose(); // モーダルを閉じる
+    //     setImages([]);
+    //     setName('');
+    //     setAddress('');
+    //     setPhone('');
+    //     setOpenTime('');
+    //     setCloseTime('');
+    //   } else {
+    //     alert('レストランの作成中にエラーが発生しました。');
+    //   }
+    // } catch (error) {
+    //   console.error('データ送信エラー:', error);
+    //   alert('APIとの接続に失敗しました。');
+    // }
   };
 
 
