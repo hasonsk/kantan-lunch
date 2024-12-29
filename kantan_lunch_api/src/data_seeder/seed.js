@@ -74,6 +74,7 @@ const seedRestaurants = async (userIds) => {
             phone_number: '+84123456789',
             open_time: '09:00',
             close_time: '22:00',
+            avg_rating: 5.0,
         },
         {
             name: 'The Gourmet Corner Restaurant',
@@ -182,6 +183,7 @@ const seedFeedback = async (userIds, restaurantIds) => {
             user_id: userIds.user1,
             restaurant_id: restaurantIds.restaurant1,
             rating: 5,
+            reviewed: true,
         },
         // Add more feedbacks...
     ];
@@ -203,6 +205,7 @@ const seedDishFeedback = async (userIds, dishIds) => {
             user_id: userIds.user2,
             dish_id: dishIds.dish1,
             rating: 5,
+            reviewed: true,
         },
         // Add more dish feedbacks...
     ];
@@ -221,6 +224,7 @@ const seedComments = async (userIds, postIds) => {
             content: '本当に素晴らしいサービスですね。',
             user_id: userIds.user2,
             post_id: postIds.feedback1,
+            reviewed: true,
         },
         // Add more comments...
     ];
