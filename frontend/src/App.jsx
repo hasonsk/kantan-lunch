@@ -82,10 +82,11 @@ function App() {
           />
 
           <Route path="/profile/:id" element={<UserProfile />} />
+
           <Route path="/admin" element={<h1>Admin Page</h1>} />
           <Route path="/admin/user" element={<UserManagement />} />
           <Route path="/admin/review" element={<ReviewManagement />} />
-          <Route path="/admin/menu" element={<RestaurantManagement />} />
+          {/* <Route path="/admin/menu" element={<RestaurantManagement />} /> */}
         </Routes>
       </main>
       
