@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRestaurants } from '../../api/restaurant';
-import restaurantData from './restaurantData';
 import './RestaurantLikeList.css';
 
 const RestaurantLikeList = () => {
@@ -34,7 +33,7 @@ const RestaurantLikeList = () => {
       const { data } = response;
       console.log('Fetched data:', response);
       setRestaurants(data);
-      setLoading(false);
+      // setLoading(false);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Something went wrong');
     }
@@ -97,7 +96,6 @@ const RestaurantLikeList = () => {
 
   useEffect(() => {
     fetchRestaurants();
-    // eslint-disable-next-line
   }, []);
 
   // Tính toán các mục cần hiển thị cho trang hiện tại
@@ -115,6 +113,9 @@ const RestaurantLikeList = () => {
 
   return (
     <div className="restaurant-like-list">
+      {/* Errors */}
+      {error && <div className="error">{error}</div>}
+
       <div className="edit-bar">
         {editMode && (
           <button className="cancel-button" onClick={handleCancelClick}>
@@ -149,9 +150,9 @@ const RestaurantLikeList = () => {
                     <h3 className="restaurant-name">{restaurant.name}</h3>
                     <div className="restaurant-rating">
                       <div className="stars">
-                        {renderStars(restaurant.average_rating || 0)}
+                        {renderStars(restaurant.avg_rating || 0)}
                       </div>
-                      <span>{restaurant.average_rating?.toFixed(1) || 'N/A'}</span>
+                      <span>{restaurant.avg_rating?.toFixed(1) || 'N/A'}</span>
                     </div>
                     <p className="restaurant-comment">{restaurant.address}</p>
                     {!editMode && (

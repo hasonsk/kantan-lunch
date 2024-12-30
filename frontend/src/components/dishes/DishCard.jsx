@@ -6,7 +6,7 @@ const DishCard = ({ item }) => {
       <img src={item.media[0]} alt={item.name} className="dish-image" />
       <div className="dish-info">
         <h3 className="dish-name">{item.name}</h3>
-        <p className="dish-price">${item.price.toFixed(2)}</p>
+        <p className="dish-price">{item.price.toLocaleString()} VND</p>
       </div>
     </li>
   );

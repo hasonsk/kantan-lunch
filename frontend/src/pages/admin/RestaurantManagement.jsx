@@ -12,7 +12,7 @@ const RestaurantManagement = () => {
         const fetchRestaurants = async () => {
             try {
                 const response = await getRestaurants();
-                setRestaurants(response.data.data);
+                setRestaurants(response.data);
                 console.log(response.data);
             } catch (error) {
                 console.error('エラーが発生しました:', error);
