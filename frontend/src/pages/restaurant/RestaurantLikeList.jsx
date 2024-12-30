@@ -1,16 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getRestaurants } from '../../api/restaurant';
 import restaurantData from './restaurantData';
 import './RestaurantLikeList.css';
 
 const RestaurantLikeList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState(false); // Chế độ sửa chữa
-  const [restaurants, setRestaurants] = useState(restaurantData); // Danh sách nhà hàng
+  const [restaurants, setRestaurants] = useState([]); // Danh sách nhà hàng
   const [selectedItems, setSelectedItems] = useState([]); // Các mục được chọn
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [itemsPerPage] = useState(3); // Số mục mỗi trang
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  console.log(restaurants);
+
+  const fetchRestaurants = async () => {
+    try {
+      setError(null);
+
+      const response = await getRestaurants();
+      /**
+       * response có dạng:
+       * {
+       *   total: number,
+       *   page: number,
+       *   limit: number,
+       *   totalPages: number,
+       *   data: [...danh sách nhà hàng...]
+       * }
+       */
+      const { data } = response;
+      console.log('Fetched data:', response);
+      setRestaurants(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Something went wrong');
+    }
+  };
 
   const renderStars = (rating) => {
     const filledStars = Math.floor(rating);
@@ -67,6 +95,11 @@ const RestaurantLikeList = () => {
     restaurant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  useEffect(() => {
+    fetchRestaurants();
+    // eslint-disable-next-line
+  }, []);
+
   // Tính toán các mục cần hiển thị cho trang hiện tại
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -113,7 +146,7 @@ const RestaurantLikeList = () => {
                     style={{ backgroundImage: `url(${image})` }}
                   ></div>
                   <div className="restaurant-info">
-                    <h3 className="restaurant-name">{restaurant.id}</h3>
+                    <h3 className="restaurant-name">{restaurant.name}</h3>
                     <div className="restaurant-rating">
                       <div className="stars">
                         {renderStars(restaurant.average_rating || 0)}
@@ -124,7 +157,7 @@ const RestaurantLikeList = () => {
                     {!editMode && (
                       <button
                         className="details-button"
-                        onClick={() => handleDetailsClick(restaurant.id)}
+                        onClick={() => handleDetailsClick(restaurant._id)}
                       >
                         詳細を見たいですか
                       </button>
