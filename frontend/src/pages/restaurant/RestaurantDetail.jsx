@@ -81,12 +81,12 @@ const RestaurantDetails = () => {
 
   // Nếu vẫn đang loading
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>読み込み中...</div>;
   }
 
   // Nếu có lỗi
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>エラー: {error}</div>;
   }
 
   // Nếu không có dữ liệu restaurant (null hoặc undefined)

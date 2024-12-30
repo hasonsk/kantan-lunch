@@ -61,7 +61,10 @@ const createPost = async (req, res, next) => {
         }
 
         // Nếu là Comment, đặt reviewed = true ngay lập tức
-        const reviewed = type === 'Comment';
+        let reviewed = type === 'Comment';
+
+        // Demo: đặt reviewed = true ngay lập tức
+        reviewed = true;
 
         const media = req.mediaUrls || [];
 
