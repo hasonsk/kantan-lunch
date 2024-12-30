@@ -6,6 +6,8 @@ import Login from './pages/session/Login';
 import Signup from './pages/session/Signup';
 import RestaurantList from './pages/restaurant/RestaurantList';
 import RestaurantDetail from './pages/restaurant/RestaurantDetail';
+import RestaurantLikeList from './pages/restaurant/RestaurantLikeList.jsx';
+import CommunityPage from './pages/community/CommunityPage.jsx';
 import Header from './components/commons/Header';
 import Footer from './components/commons/Footer';
 import UploadPostPage from './pages/post/UploadPost';
@@ -23,7 +25,7 @@ function App() {
   const isLoggedIn = useSelector((state) => state.user.value);
   const showModal = useSelector((state) => state.error.value);
   let location = useLocation();
-  
+
   return (
     <div>
       {/* Header luôn xuất hiện trừ khi login/signup hoặc admin */}
@@ -31,18 +33,20 @@ function App() {
         location.pathname !== '/signup' &&
         !location.pathname.startsWith('/admin') && <Header />}
       {location.pathname.startsWith('/admin') && <AdminHeader />}
-      
+
       <main>
         {/* Các route chính */}
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<Navigate to="/community" replace />} />
           <Route path="/carousel" element={<UncontrolledExample />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/restaurant-list" element={<RestaurantList />} />
+          <Route path="/community" element={<CommunityPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+          <Route path="/interesting" element={<RestaurantLikeList />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          
+
           {/* Route cho UploadPost với và không có restaurantId */}
           <Route
             path="/restaurants/:restaurantId/write-post"
@@ -64,7 +68,7 @@ function App() {
               )
             }
           />
-          
+
           <Route
             path="/admin/restaurant-management"
             element={<RestaurantManagement />}
@@ -88,12 +92,12 @@ function App() {
           <Route path="/admin/menu" element={<RestaurantManagement />} />
         </Routes>
       </main>
-      
+
       {/* Footer luôn xuất hiện trừ khi login/signup */}
       {location.pathname !== '/login' && location.pathname !== '/signup' && (
         <Footer />
       )}
-      
+
       {/* Modal lỗi */}
       {showModal ? <ErrorModal /> : null}
     </div>

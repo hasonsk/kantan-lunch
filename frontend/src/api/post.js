@@ -42,6 +42,11 @@ export const getPostsByRestaurantId = async (restaurantId) => {
   }
 }
 
+export const getPosts = async (queryParams) => {
+  const response = await axios.get("/api/posts", { params: queryParams });
+  return response.data;
+};
+
 // Lấy thông tin chi tiết post theo ID
 export const getPostById = async (id) => {
   const response = await api.get(`/posts/${id}`);
